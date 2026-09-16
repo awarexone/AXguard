@@ -518,35 +518,29 @@ def mount_routes(app: Any, deps: AppDeps) -> None:
         _auth(request, "findings:read")
         project = _project(project_id)
         body = await _json(request)
-        base = Path(body["base_path"]) if body.get("base_path") else None
-        head = Path(body["head_path"]) if body.get("head_path") else Path(project["path"])
-        from engines.scanner import ScanOptions, run_scan
-        from engines.paths import default_rules_dir
+        base = body.get("base_path") or body.get("base")
+        head = body.get("head_path") or body.get("head") or project["path"]
+        from engines.security_diff import security_diff as run_sd
+        from engines.security_diff.github_summary import format_github_pr_summary
 
-        empty = {
-            "new_findings": [],
-            "resolved_findings": [],
-            "regressions": [],
-            "security_posture_delta": {},
-        }
-        if not base or not base.exists() or not head.exists():
-            return {**empty, "note": "base_path and head_path required"}
-        rules = default_rules_dir()
-        base_scan = run_scan(ScanOptions(target=base, rules_dir=rules))
-        head_scan = run_scan(ScanOptions(target=head, rules_dir=rules))
-
-        def key(f: dict[str, Any]) -> str:
-            return f"{f.get('id')}|{f.get('file')}|{f.get('line')}"
-
-        base_map = {key(f): f for f in base_scan.get("findings") or []}
-        head_map = {key(f): f for f in head_scan.get("findings") or []}
-        return {
-            **empty,
-            "new_findings": [head_map[k] for k in head_map.keys() - base_map.keys()],
-            "resolved_findings": [base_map[k] for k in base_map.keys() - head_map.keys()],
-            "base_finding_count": len(base_map),
-            "head_finding_count": len(head_map),
-        }
+        result = run_sd(
+            base=base,
+            head=head,
+            project=project["path"],
+            options={
+                "range_spec": body.get("range"),
+                "baseline_name": body.get("baseline_name") or "default",
+                "use_snapshot": bool(body.get("use_snapshot")),
+                "incremental": body.get("incremental", True),
+                "fail_on": body.get("fail_on") or "none",
+            },
+        )
+        # Backward-compatible finding-ish fields (empty unless consumers need them)
+        result.setdefault("new_findings", [])
+        result.setdefault("resolved_findings", [])
+        result.setdefault("security_posture_delta", result.get("security_impact") or {})
+        result["github_summary"] = format_github_pr_summary(result)
+        return result
 
     @app.get("/v1/projects/{project_id}/security-posture")
     async def security_posture(project_id: str, request: Request):

@@ -430,6 +430,40 @@ _TOOL_SPECS: list[tuple[str, str, dict[str, Any]]] = [
             "openWorldHint": False,
         },
     ),
+    (
+        "axguard_security_diff",
+        (
+            "Compare two application states and explain security-relevant changes, "
+            "including attack surface, security controls, data flows, privileges, "
+            "trust boundaries, attack paths, regressions, and predictive risks. "
+            "Use when meaningful security-sensitive code changes occur — not for "
+            "trivial renames/formatting. Read-only."
+        ),
+        {
+            "title": "Security Diff",
+            "readOnlyHint": True,
+            "destructiveHint": False,
+            "idempotentHint": True,
+            "openWorldHint": False,
+        },
+    ),
+    (
+        "axguard_preship",
+        (
+            "Pre-Ship security gate: is this code safe enough to ship? "
+            "Returns PASS | PASS_WITH_NOTES | REVIEW_REQUIRED | FAIL. "
+            "Composes audit + Security Diff + soft predictive/memory. "
+            "Modes: QUICK|STANDARD|DEEP|MAX (default STANDARD). "
+            "Never fails solely on unverified suspicion. Read-only."
+        ),
+        {
+            "title": "Pre-Ship Gate",
+            "readOnlyHint": True,
+            "destructiveHint": False,
+            "idempotentHint": False,
+            "openWorldHint": False,
+        },
+    ),
 ]
 
 

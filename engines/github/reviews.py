@@ -71,6 +71,15 @@ def build_summary_body(
             lines.append("**Security regression:** None detected.")
             lines.append("")
 
+        sd_summary = None
+        if isinstance(result.meta, dict):
+            sd_summary = result.meta.get("security_diff_summary")
+        if isinstance(sd_summary, str) and sd_summary.strip():
+            lines.append("```")
+            lines.append(sd_summary.rstrip())
+            lines.append("```")
+            lines.append("")
+
         # Keep Verified vs Predictive vs Improvements separated (additive)
         predictive = None
         if isinstance(result.meta, dict):

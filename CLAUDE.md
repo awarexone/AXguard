@@ -19,6 +19,7 @@ pip install -e .
 | What you are doing | Start here |
 |---|---|
 | About to publish | `/axguard-audit` |
+| Security Diff on a change | `/axguard-diff` · `axguard diff` |
 | Quick check while coding | `/axguard-scan` |
 | New / unknown codebase | `/axguard-threat-model` → `/axguard-audit` |
 | Secrets | `/axguard-secrets` |
