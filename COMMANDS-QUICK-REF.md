@@ -17,6 +17,7 @@
 | GitHub Security Bot | `axguard github setup\|validate\|test\|status` |
 | Predictive Security | `axguard predict …` |
 | Local Security Intelligence API | `axguard api start` → `http://127.0.0.1:8787` |
+| MCP (AI coding agents) | `axguard mcp` · `serve` · `doctor` · `tools` → [docs/mcp.md](docs/mcp.md) |
 | Training-data pipeline | `/axguard-data` |
 | Threat model first | `/axguard-threat-model` |
 | Secrets only | `/axguard-secrets` |
@@ -104,6 +105,10 @@ axguard github validate .
 axguard github test .
 axguard github status .
 axguard api start      # Local API — docs/api/overview.md
+axguard mcp            # MCP stdio — docs/mcp.md · docs/mcp-config.md
+axguard mcp serve
+axguard mcp doctor
+axguard mcp tools
 axguard predict .      # Predictive security — see docs/predictive/README.md
 axguard predict --pr --base ./base
 axguard predict --architecture

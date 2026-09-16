@@ -762,6 +762,14 @@ def build_parser() -> argparse.ArgumentParser:
     from engines.api.cli import add_api_parser
 
     add_api_parser(sub)
+
+    try:
+        from engines.mcp.cli import add_mcp_parser
+
+        add_mcp_parser(sub)
+    except ImportError:
+        pass
+
     return parser
 
 
@@ -784,6 +792,7 @@ AXguard — start with the workflow you need
   Investigation Agent             axguard investigate …  |  docs/investigation/README.md
   Predictive Security             axguard predict … |  engines/predictive/
   Local Security Intelligence API axguard api start |  docs/api/overview.md
+  MCP (AI coding agents)          axguard mcp …     |  axguard mcp doctor
   GitHub Security Bot             axguard github …  |  docs/github/README.md
   About AXGuard                   axguard about
   Engagement prefs                axguard engage disable | enable | dismiss
@@ -911,6 +920,14 @@ def main(argv: list[str] | None = None) -> int:
         from engines.api.cli import run_api_command
 
         return run_api_command(args)
+
+    if args.command == "mcp":
+        try:
+            from engines.mcp.cli import run_mcp_command
+        except ImportError as exc:
+            print(f"error: MCP unavailable: {exc}", file=sys.stderr)
+            return 2
+        return run_mcp_command(args)
 
     if args.command in {
         "scan",

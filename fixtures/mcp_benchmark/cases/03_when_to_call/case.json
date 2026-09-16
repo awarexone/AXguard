@@ -1,0 +1,15 @@
+{
+  "id": "03_when_to_call",
+  "category": "when_to_call",
+  "prompt": "Added a new REST endpoint that loads records by user-controlled id without ownership checks.",
+  "change": {
+    "files": ["src/api/users.ts"],
+    "signals": ["authorization", "new_endpoint", "user_controlled_id"]
+  },
+  "expected": {
+    "label": "SHOULD_CALL",
+    "primary_tool": "axguard_security_review",
+    "mode_hint": "BALANCED",
+    "should_deepen_if": ["high findings", "auth rule hits"]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01_tool_discovery",
+  "category": "tool_discovery",
+  "prompt": "What security tools does AXGuard MCP expose for a pre-ship review?",
+  "expected": {
+    "label": "EXPECTED_TOOL",
+    "must_include_tools": [
+      "axguard_security_review",
+      "axguard_list_findings",
+      "axguard_get_evidence",
+      "axguard_find_attack_paths"
+    ],
+    "primary_tool": "axguard_security_review"
+  }
+}

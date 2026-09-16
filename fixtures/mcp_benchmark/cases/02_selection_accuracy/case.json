@@ -1,0 +1,11 @@
+{
+  "id": "02_selection_accuracy",
+  "category": "selection_accuracy",
+  "prompt": "I changed authorization middleware. Which AXGuard tool should I call first?",
+  "expected": {
+    "label": "EXPECTED_TOOL",
+    "primary_tool": "axguard_security_review",
+    "acceptable_tools": ["axguard_security_review"],
+    "avoid_tools": ["axguard_generate_fix", "shell", "network"]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "id": "07_security_regressions",
+  "category": "security_regressions",
+  "scenarios": [
+    {"name": "authorization_removed", "label": "SHOULD_CALL", "expect_decision": ["REVIEW_REQUIRED", "BLOCK"]},
+    {"name": "tenant_isolation_weakened", "label": "SHOULD_CALL", "expect_decision": ["REVIEW_REQUIRED", "BLOCK"]},
+    {"name": "new_privileged_endpoint", "label": "SHOULD_CALL", "expect_decision": ["REVIEW_REQUIRED", "MONITOR", "BLOCK"]},
+    {"name": "new_external_http", "label": "SHOULD_CALL", "expect_decision": ["REVIEW_REQUIRED", "MONITOR", "PASS"]},
+    {"name": "new_file_access", "label": "SHOULD_CALL", "expect_decision": ["REVIEW_REQUIRED", "MONITOR", "PASS"]},
+    {"name": "new_shell_execution", "label": "SHOULD_CALL", "expect_decision": ["REVIEW_REQUIRED", "BLOCK"]},
+    {"name": "new_mcp_tool", "label": "SHOULD_CALL", "expect_decision": ["REVIEW_REQUIRED", "MONITOR", "PASS"]},
+    {"name": "new_agent_permission", "label": "SHOULD_CALL", "expect_decision": ["REVIEW_REQUIRED", "MONITOR", "PASS"]},
+    {"name": "new_secret", "label": "SHOULD_CALL", "expect_decision": ["REVIEW_REQUIRED", "MONITOR", "BLOCK"]},
+    {"name": "new_dependency", "label": "SHOULD_CALL", "expect_decision": ["PASS", "MONITOR", "REVIEW_REQUIRED"]},
+    {"name": "new_webhook", "label": "SHOULD_CALL", "expect_decision": ["REVIEW_REQUIRED", "MONITOR", "PASS"]},
+    {"name": "new_upload_flow", "label": "SHOULD_CALL", "expect_decision": ["REVIEW_REQUIRED", "MONITOR", "PASS"]}
+  ],
+  "expected": {
+    "primary_tool": "axguard_security_review",
+    "predictive_is_not_verified": true
+  }
+}

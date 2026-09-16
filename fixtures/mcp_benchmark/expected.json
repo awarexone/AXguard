@@ -1,0 +1,44 @@
+{
+  "kind": "mcp_benchmark_fixture",
+  "version": 1,
+  "labels": [
+    "SHOULD_CALL",
+    "SHOULD_NOT_CALL",
+    "SHOULD_DEEPEN",
+    "SHOULD_RETURN_UNKNOWN",
+    "SHOULD_REJECT",
+    "EXPECTED_TOOL",
+    "EXPECTED_ERROR"
+  ],
+  "categories": [
+    "tool_discovery",
+    "selection_accuracy",
+    "when_to_call",
+    "when_not_to_call",
+    "unknown_cases",
+    "reject_malicious",
+    "security_regressions"
+  ],
+  "cases": [
+    "01_tool_discovery",
+    "02_selection_accuracy",
+    "03_when_to_call",
+    "04_when_not_to_call",
+    "05_unknown_cases",
+    "06_reject_malicious",
+    "07_security_regressions"
+  ],
+  "metrics": [
+    "tool_discovery",
+    "tool_selection_accuracy",
+    "unnecessary_tool_calls",
+    "security_review_accuracy",
+    "false_positive_rate",
+    "context_consumed",
+    "latency",
+    "attack_path_detection",
+    "regression_detection",
+    "fix_verification"
+  ],
+  "notes": "Unit harness only — no live network. Predictive ≠ verified."
+}
