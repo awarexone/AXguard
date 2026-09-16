@@ -18,7 +18,7 @@ from engines.security_diff.schema import (
     IMPACT_MEDIUM,
     IMPACT_NONE,
     IMPACT_UNKNOWN,
-    BASELINE_UNAVAILABLE,
+    is_baseline_unavailable,
 )
 
 _RANK = {
@@ -41,7 +41,7 @@ def _max_impact(*levels: str) -> str:
 
 def classify_impact(diff: dict[str, Any]) -> dict[str, Any]:
     """Derive overall security_impact + decision from populated deltas."""
-    if str(diff.get("baseline")) in {BASELINE_UNAVAILABLE, "UNKNOWN", "BASELINE_UNAVAILABLE"}:
+    if is_baseline_unavailable(str(diff.get("baseline"))):
         return {
             "level": IMPACT_UNKNOWN,
             "reason": "No valid baseline available; comparison was not fabricated.",

@@ -7,6 +7,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from engines.security_diff.schema import is_baseline_unavailable
+
 
 def render_text(diff: dict[str, Any]) -> str:
     """Concise CLI output (default)."""
@@ -61,11 +63,11 @@ def render_text(diff: dict[str, Any]) -> str:
         lines.append("none")
     lines.extend(["", "Decision:", str(decision)])
 
-    if str(diff.get("baseline")) == "BASELINE_UNAVAILABLE":
+    if is_baseline_unavailable(str(diff.get("baseline"))):
         lines.extend(
             [
                 "",
-                "BASELINE_SOURCE: BASELINE_UNAVAILABLE",
+                f"BASELINE_SOURCE: {diff.get('baseline') or 'BASELINE_UNAVAILABLE'}",
                 "No comparison fabricated.",
             ]
         )

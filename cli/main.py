@@ -692,12 +692,16 @@ def build_parser() -> argparse.ArgumentParser:
             "security-relevant changes (not another scanner)"
         ),
     )
-    diff_sub = diff_cmd.add_subparsers(dest="diff_command")
+    # Use nargs='*' tokens (not nested subparsers) so `axguard diff HEAD~1` works.
+    # Tokens: [range|ref|path] OR `baseline` [save] [path]
     diff_cmd.add_argument(
-        "range_or_path",
-        nargs="?",
-        default=None,
-        help="Git range (main...HEAD), ref (HEAD~1), commit, or path (default: auto)",
+        "tokens",
+        nargs="*",
+        default=[],
+        help=(
+            "Git range (main...HEAD), ref (HEAD~1), path, or "
+            "'baseline' / 'baseline save' [--name]"
+        ),
     )
     diff_cmd.add_argument("--base", default=None, help="Base git ref or path")
     diff_cmd.add_argument("--head", default=None, help="Head git ref or path (default: working tree)")
@@ -741,45 +745,19 @@ def build_parser() -> argparse.ArgumentParser:
     diff_cmd.add_argument(
         "--baseline-name",
         default="default",
+        dest="baseline_name",
         help="AXGuard snapshot baseline name (non-git)",
+    )
+    diff_cmd.add_argument(
+        "--name",
+        default=None,
+        help="Alias for --baseline-name (baseline save/compare)",
     )
     diff_cmd.add_argument("--no-banner", action="store_true", help="Hide the ASCII banner")
     diff_cmd.add_argument(
         "--no-engage",
         action="store_true",
         help="Skip engagement / first-run messaging",
-    )
-    diff_base = diff_sub.add_parser(
-        "baseline",
-        help="Compare against a stored AXGuard baseline (or save one)",
-    )
-    diff_base_sub = diff_base.add_subparsers(dest="diff_baseline_command")
-    diff_base.add_argument(
-        "--name",
-        default="default",
-        help="Baseline name (default: default)",
-    )
-    diff_base.add_argument(
-        "--json",
-        action="store_true",
-        dest="as_json",
-        help="Print JSON",
-    )
-    diff_base.add_argument("--no-banner", action="store_true", help="Hide the ASCII banner")
-    diff_base_save = diff_base_sub.add_parser(
-        "save",
-        help="Save current security state as a baseline snapshot",
-    )
-    diff_base_save.add_argument(
-        "--name",
-        default="default",
-        help="Baseline name (default: default)",
-    )
-    diff_base_save.add_argument(
-        "path",
-        nargs="?",
-        default=".",
-        help="Project path (default: .)",
     )
 
     sub.add_parser("version", help="Print version")
@@ -1487,22 +1465,28 @@ def _run_diff_command(args: argparse.Namespace) -> int:
     )
     from engines.security_diff.report import (
         render_text,
-        render_verbose,
         to_json,
-        write_security_diff_report,
     )
 
-    # axguard diff baseline save
-    if getattr(args, "diff_command", None) == "baseline":
-        name = getattr(args, "name", None) or "default"
-        if getattr(args, "diff_baseline_command", None) == "save":
-            path = Path(getattr(args, "path", ".") or ".").resolve()
+    tokens = list(getattr(args, "tokens", None) or [])
+    name = (
+        getattr(args, "name", None)
+        or getattr(args, "baseline_name", None)
+        or "default"
+    )
+
+    # axguard diff baseline [save] [path]
+    if tokens and tokens[0] == "baseline":
+        rest = tokens[1:]
+        if rest and rest[0] == "save":
+            path = Path((rest[1] if len(rest) > 1 else ".") or ".").resolve()
             out = save_baseline_from_project(path, name=name)
             print(f"Saved Security Diff baseline '{name}' → {out}")
             return 0
-        # axguard diff baseline  → compare to snapshot
+        # axguard diff baseline → compare to snapshot
+        project = rest[0] if rest else "."
         result = run_security_diff(
-            project=".",
+            project=project,
             use_snapshot=True,
             baseline_name=name,
             fail_on=getattr(args, "fail_on", "none") or "none",
@@ -1514,7 +1498,7 @@ def _run_diff_command(args: argparse.Namespace) -> int:
             print(render_text(result), end="")
         return 1 if should_fail(result, getattr(args, "fail_on", "none") or "none") else 0
 
-    range_or_path = getattr(args, "range_or_path", None)
+    range_or_path = tokens[0] if tokens else None
     base = getattr(args, "base", None)
     head = getattr(args, "head", None)
     range_spec = None
@@ -1528,7 +1512,7 @@ def _run_diff_command(args: argparse.Namespace) -> int:
                 result = run_security_diff(
                     project=project,
                     use_snapshot=True,
-                    baseline_name=getattr(args, "baseline_name", "default") or "default",
+                    baseline_name=name,
                     fail_on=args.fail_on,
                     incremental=not args.no_incremental,
                     investigate=bool(args.investigate),
@@ -1546,7 +1530,7 @@ def _run_diff_command(args: argparse.Namespace) -> int:
         base=base,
         head=head,
         range_spec=range_spec,
-        baseline_name=getattr(args, "baseline_name", "default") or "default",
+        baseline_name=name,
         fail_on=args.fail_on,
         incremental=not args.no_incremental,
         investigate=bool(args.investigate),

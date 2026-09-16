@@ -255,6 +255,8 @@ def run_preship(
             )
 
         # Optional prior artifacts under .findings for compose enrich
+        # (compose path keeps legacy baseline token "UNKNOWN" for compatibility;
+        # pipeline path uses BASELINE_UNAVAILABLE — both mean the same thing.)
         base_arts: dict[str, Any] = {}
         findings_dir = root / ".findings" / "axguard"
         if findings_dir.is_dir() and not base_path:

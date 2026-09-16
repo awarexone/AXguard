@@ -160,3 +160,35 @@ def test_mcp_compact_and_github_summary():
     assert "new_attack_paths" in compact
     text = format_github_pr_summary(d)
     assert "AXGUARD SECURITY DIFF" in text
+
+
+def test_cli_parses_diff_head_tilde():
+    """Documented `axguard diff HEAD~1` must parse (no subparser collision)."""
+    from cli.main import build_parser
+
+    parser = build_parser()
+    args = parser.parse_args(["diff", "HEAD~1", "--no-banner"])
+    assert args.command == "diff"
+    assert args.tokens == ["HEAD~1"]
+
+
+def test_cli_parses_diff_range_and_baseline_save():
+    from cli.main import build_parser
+
+    parser = build_parser()
+    args = parser.parse_args(["diff", "main...HEAD", "--json", "--no-banner"])
+    assert args.tokens == ["main...HEAD"]
+    assert args.as_json is True
+
+    args2 = parser.parse_args(["diff", "baseline", "save", ".", "--name", "ci"])
+    assert args2.tokens == ["baseline", "save", "."]
+    assert args2.name == "ci"
+
+
+def test_unavailable_baseline_sets_overall_unknown(tmp_path):
+    from engines.security_diff import security_diff
+
+    result = security_diff(project=tmp_path, options={"use_snapshot": True})
+    assert result["baseline"] in {"BASELINE_UNAVAILABLE", "UNKNOWN"}
+    assert result["overall_security_change"] in {"UNKNOWN", "BASELINE_UNAVAILABLE"}
+    assert (result.get("security_impact") or {}).get("level") == "UNKNOWN"

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from engines.security_diff.schema import is_baseline_unavailable
+
 
 def render_security_diff_text(result: dict[str, Any]) -> str:
     """Render compact SECURITY DIFF text (product-style)."""
@@ -13,8 +15,8 @@ def render_security_diff_text(result: dict[str, Any]) -> str:
     lines.append("")
 
     baseline = result.get("baseline") or "UNKNOWN"
-    if baseline == "UNKNOWN":
-        lines.append("BASELINE: UNKNOWN")
+    if is_baseline_unavailable(str(baseline)):
+        lines.append(f"BASELINE: {baseline}")
         lines.append("")
 
     summary = result.get("summary") or {}
@@ -38,7 +40,6 @@ def render_security_diff_text(result: dict[str, Any]) -> str:
     _minus(int(summary.get("removed_controls") or 0), "authorization/security control")
     _plus(int(summary.get("added_controls") or 0), "security control added")
 
-    # Authz / tenant highlights
     for ch in result.get("authz_changes") or []:
         lines.append(f"! authz: {ch.get('change')}")
     for ch in result.get("tenant_changes") or []:
@@ -48,24 +49,14 @@ def render_security_diff_text(result: dict[str, Any]) -> str:
         lines.append("(no structural security changes detected)")
 
     lines.append("")
-    lines.append("Attack paths:")
-    lines.append(f"+ {int(summary.get('new_attack_paths') or 0)} reachable")
-    lines.append(f"- {int(summary.get('blocked_attack_paths') or 0)} blocked")
-    lines.append("")
-    lines.append("Security controls:")
-    lines.append(f"{int(summary.get('weakened_controls') or 0)} weakened")
-    lines.append(f"{int(summary.get('added_controls') or 0)} added")
-    lines.append(f"{int(summary.get('removed_controls') or 0)} removed")
-    lines.append(f"{int(summary.get('strengthened_controls') or 0)} strengthened")
-    lines.append("")
-    lines.append("Overall security change:")
-    lines.append(str(result.get("overall_security_change") or "LOW"))
-
-    notes = result.get("notes") or []
-    if notes:
-        lines.append("")
-        lines.append("Notes:")
-        for n in notes[:8]:
-            lines.append(f"- {n}")
-
-    return "\n".join(lines).rstrip() + "\n"
+    overall = result.get("overall_security_change")
+    if not overall:
+        impact = result.get("security_impact") or {}
+        overall = impact.get("level") or (
+            "UNKNOWN" if is_baseline_unavailable(str(baseline)) else "NONE"
+        )
+    lines.append(f"Overall security change: {overall}")
+    decision = (result.get("security_impact") or {}).get("decision")
+    if decision:
+        lines.append(f"Decision: {decision}")
+    return "\n".join(lines) + "\n"

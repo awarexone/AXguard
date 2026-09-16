@@ -62,6 +62,32 @@ def save_baseline_from_project(
     return save_baseline(root, state, name=name)
 
 
+def _mark_baseline_unavailable(
+    result: dict[str, Any],
+    *,
+    notes: list[str],
+    reason: str,
+    unknown_reason: str,
+) -> dict[str, Any]:
+    """Stamp an unavailable-baseline result without fabricating a comparison."""
+    result["baseline"] = BASELINE_UNAVAILABLE
+    result["notes"] = list(notes)
+    result["security_impact"] = {
+        "level": IMPACT_UNKNOWN,
+        "reason": reason,
+        "decision": DECISION_UNKNOWN,
+    }
+    result["overall_security_change"] = IMPACT_UNKNOWN
+    result.setdefault("unknowns", []).append(
+        {
+            "area": "baseline",
+            "reason": unknown_reason,
+            "status": "UNKNOWN",
+        }
+    )
+    return result
+
+
 def security_diff(
     base: Any = None,
     head: Any = None,
@@ -165,21 +191,12 @@ def security_diff(
             )
             return result
         notes.append("AXGuard snapshot baseline not found")
-        result["baseline"] = BASELINE_UNAVAILABLE
-        result["notes"] = notes
-        result["security_impact"] = {
-            "level": IMPACT_UNKNOWN,
-            "reason": "BASELINE_UNAVAILABLE — no valid baseline for comparison.",
-            "decision": DECISION_UNKNOWN,
-        }
-        result["unknowns"].append(
-            {
-                "area": "baseline",
-                "reason": "No git base and no stored AXGuard snapshot.",
-                "status": "UNKNOWN",
-            }
+        return _mark_baseline_unavailable(
+            result,
+            notes=notes,
+            reason="BASELINE_UNAVAILABLE — no valid baseline for comparison.",
+            unknown_reason="No git base and no stored AXGuard snapshot.",
         )
-        return result
     else:
         # Auto: try git, else snapshot
         base_ref = None
@@ -203,14 +220,12 @@ def security_diff(
         mat = materialize_ref(Path(cmp["repo"]), str(cmp.get("base_sha") or base_ref))
         if mat is None:
             notes.append("failed to materialize git base tree")
-            result["baseline"] = BASELINE_UNAVAILABLE
-            result["notes"] = notes
-            result["security_impact"] = {
-                "level": IMPACT_UNKNOWN,
-                "reason": "BASELINE_UNAVAILABLE — git base could not be materialized.",
-                "decision": DECISION_UNKNOWN,
-            }
-            return result
+            return _mark_baseline_unavailable(
+                result,
+                notes=notes,
+                reason="BASELINE_UNAVAILABLE — git base could not be materialized.",
+                unknown_reason="Git base materialization failed.",
+            )
         materialized.append(mat)
         base_path = mat
         # Head: working tree unless head ref != HEAD
@@ -255,24 +270,14 @@ def security_diff(
                     cleanup_materialized(m)
             return result
 
-        result["baseline"] = BASELINE_UNAVAILABLE
-        result["notes"] = notes + [
-            "BASELINE_UNAVAILABLE — no git base and no AXGuard snapshot."
-        ]
-        result["security_impact"] = {
-            "level": IMPACT_UNKNOWN,
-            "reason": "BASELINE_UNAVAILABLE — no valid baseline for comparison.",
-            "decision": DECISION_UNKNOWN,
-        }
-        result["unknowns"].append(
-            {
-                "area": "baseline",
-                "reason": "No valid baseline exists.",
-                "status": "UNKNOWN",
-            }
+        return _mark_baseline_unavailable(
+            result,
+            notes=notes + [
+                "BASELINE_UNAVAILABLE — no git base and no AXGuard snapshot."
+            ],
+            reason="BASELINE_UNAVAILABLE — no valid baseline for comparison.",
+            unknown_reason="No valid baseline exists.",
         )
-        return result
-
     try:
         assert base_path is not None and head_path is not None
         base_state = build_security_state(
