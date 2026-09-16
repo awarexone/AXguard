@@ -1,0 +1,10 @@
+{
+  "id": "05_unknown_cases",
+  "category": "unknown_cases",
+  "prompt": "Is this route authorized? Middleware implementation is in an opaque binary plugin we cannot analyze.",
+  "expected": {
+    "label": "SHOULD_RETURN_UNKNOWN",
+    "forbidden_claims": ["SAFE", "definitely vulnerable", "confirmed exploit"],
+    "preferred_states": ["UNKNOWN", "INSUFFICIENT_EVIDENCE"]
+  }
+}

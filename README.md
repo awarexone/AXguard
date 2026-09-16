@@ -53,6 +53,7 @@ It ships as:
 
 * A **standalone CLI** (`axguard`)
 * An **AI agent plugin** (skills + slash commands for Claude Code, Cursor, OpenCode, Codex, and shared Agent Skills)
+* A **local-first MCP server** for AI coding agents (`axguard mcp` — `pip install -e '.[mcp]'`). See [docs/mcp.md](docs/mcp.md).
 * An optional **local-first Security Intelligence API** (`axguard api start` → `http://127.0.0.1:8787`) — no AwareXone account or hosted LLM; use **no-llm** (default), Ollama/local, or BYOK (`pip install -e '.[api]'`). See [docs/api/overview.md](docs/api/overview.md).
 
 ```text
@@ -60,6 +61,34 @@ AI builds it → AXguard checks it → You fix it → You ship it
 ```
 
 Source scanning is current. Artifact/bytecode scanners (JS bundles, WASM, etc.) are planned — see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
+## AI Coding Agents
+
+AXGuard can run directly inside AI coding agents through MCP.
+
+Use AXGuard as the security layer for your coding agent.
+
+```text
+AI Agent
+   ↓
+AXGuard MCP
+   ↓
+AXGuard Security Engine
+```
+
+Interfaces on the same engine:
+
+```text
+CLI
+API
+MCP
+Agent Skills
+GitHub
+```
+
+Primary agent tool: `axguard_security_review`. Install: `pip install -e '.[mcp]'` → `axguard mcp doctor` → configure your host ([docs/mcp-config.md](docs/mcp-config.md)). Overview: [docs/mcp.md](docs/mcp.md) · Tools: [docs/mcp-tools.md](docs/mcp-tools.md) · Security: [docs/mcp-security.md](docs/mcp-security.md).
 
 ---
 
@@ -194,6 +223,7 @@ open .findings/axguard/axguard-report.html
 | Investigation Agent | `axguard investigate .` → [docs/investigation](docs/investigation/README.md) |
 | Predictive security risk | `axguard predict .` → [docs/predictive](docs/predictive/README.md) |
 | Local Security Intelligence API | `axguard api start` → [docs/api](docs/api/overview.md) |
+| MCP for AI coding agents | `axguard mcp` → [docs/mcp.md](docs/mcp.md) |
 | GitHub PR bot (self-host) | `axguard github setup` → [docs/github](docs/github/README.md) |
 | Full security-lead pass | skill `axguard-cso` |
 | Short pre-ship checklist | skill `axguard-preship` |
