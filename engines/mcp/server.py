@@ -244,6 +244,20 @@ def _register_simple_tools(mcp, ann_fn, wrap_fn) -> None:
     def axguard_verify_finding(finding_id: str | None = None, approved: bool = False) -> dict[str, Any]:
         return wrap_fn(HANDLERS["axguard_verify_finding"])(finding_id=finding_id, approved=approved)
 
+    @mcp.tool(name="axguard_verify_fix", description=by_name["axguard_verify_fix"]["description"], annotations=ann_fn("axguard_verify_fix"))
+    def axguard_verify_fix(
+        finding_id: str | None = None,
+        fingerprint: str | None = None,
+        path: str | None = None,
+        approved: bool = False,
+    ) -> dict[str, Any]:
+        return wrap_fn(HANDLERS["axguard_verify_fix"])(
+            finding_id=finding_id,
+            fingerprint=fingerprint,
+            path=path,
+            approved=approved,
+        )
+
     @mcp.tool(name="axguard_get_evidence", description=by_name["axguard_get_evidence"]["description"], annotations=ann_fn("axguard_get_evidence"))
     def axguard_get_evidence(finding_id: str | None = None, approved: bool = False) -> dict[str, Any]:
         return wrap_fn(HANDLERS["axguard_get_evidence"])(finding_id=finding_id, approved=approved)

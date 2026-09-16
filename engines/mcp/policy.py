@@ -33,6 +33,7 @@ TOOL_TIERS: dict[str, ApprovalTier] = {
     "axguard_list_findings": ApprovalTier.AUTO,
     "axguard_get_finding": ApprovalTier.AUTO,
     "axguard_verify_finding": ApprovalTier.APPROVAL_REQUIRED,
+    "axguard_verify_fix": ApprovalTier.APPROVAL_REQUIRED,
     # Evidence
     "axguard_get_evidence": ApprovalTier.AUTO,
     "axguard_get_evidence_chain": ApprovalTier.AUTO,
