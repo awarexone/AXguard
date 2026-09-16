@@ -684,6 +684,104 @@ def build_parser() -> argparse.ArgumentParser:
         help="Skip engagement / first-run messaging",
     )
 
+    diff_cmd = sub.add_parser(
+        "diff",
+        aliases=["security-diff"],
+        help=(
+            "Security Diff — compare two application states and explain "
+            "security-relevant changes (not another scanner)"
+        ),
+    )
+    diff_sub = diff_cmd.add_subparsers(dest="diff_command")
+    diff_cmd.add_argument(
+        "range_or_path",
+        nargs="?",
+        default=None,
+        help="Git range (main...HEAD), ref (HEAD~1), commit, or path (default: auto)",
+    )
+    diff_cmd.add_argument("--base", default=None, help="Base git ref or path")
+    diff_cmd.add_argument("--head", default=None, help="Head git ref or path (default: working tree)")
+    diff_cmd.add_argument(
+        "--fail-on",
+        choices=("critical", "high", "medium", "low", "none"),
+        default="none",
+        help="Exit non-zero when security impact meets this level",
+    )
+    diff_cmd.add_argument(
+        "--json",
+        action="store_true",
+        dest="as_json",
+        help="Print Security Diff JSON",
+    )
+    diff_cmd.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Detailed human-readable delta",
+    )
+    diff_cmd.add_argument(
+        "--html",
+        action="store_true",
+        help="Write HTML report under --out-dir",
+    )
+    diff_cmd.add_argument(
+        "--out-dir",
+        default=".findings/axguard",
+        help="Artifact directory (default: .findings/axguard)",
+    )
+    diff_cmd.add_argument(
+        "--no-incremental",
+        action="store_true",
+        help="Disable incremental/changed-file scoping metadata",
+    )
+    diff_cmd.add_argument(
+        "--investigate",
+        action="store_true",
+        help="Soft-invoke Investigation Engine for control-removal candidates",
+    )
+    diff_cmd.add_argument(
+        "--baseline-name",
+        default="default",
+        help="AXGuard snapshot baseline name (non-git)",
+    )
+    diff_cmd.add_argument("--no-banner", action="store_true", help="Hide the ASCII banner")
+    diff_cmd.add_argument(
+        "--no-engage",
+        action="store_true",
+        help="Skip engagement / first-run messaging",
+    )
+    diff_base = diff_sub.add_parser(
+        "baseline",
+        help="Compare against a stored AXGuard baseline (or save one)",
+    )
+    diff_base_sub = diff_base.add_subparsers(dest="diff_baseline_command")
+    diff_base.add_argument(
+        "--name",
+        default="default",
+        help="Baseline name (default: default)",
+    )
+    diff_base.add_argument(
+        "--json",
+        action="store_true",
+        dest="as_json",
+        help="Print JSON",
+    )
+    diff_base.add_argument("--no-banner", action="store_true", help="Hide the ASCII banner")
+    diff_base_save = diff_base_sub.add_parser(
+        "save",
+        help="Save current security state as a baseline snapshot",
+    )
+    diff_base_save.add_argument(
+        "--name",
+        default="default",
+        help="Baseline name (default: default)",
+    )
+    diff_base_save.add_argument(
+        "path",
+        nargs="?",
+        default=".",
+        help="Project path (default: .)",
+    )
+
     sub.add_parser("version", help="Print version")
     sub.add_parser("help", help="Show Start Using workflow table")
 
@@ -770,6 +868,13 @@ def build_parser() -> argparse.ArgumentParser:
     except ImportError:
         pass
 
+    try:
+        from engines.preship.cli import add_preship_parser
+
+        add_preship_parser(sub)
+    except ImportError:
+        pass
+
     return parser
 
 
@@ -778,7 +883,9 @@ AXguard — start with the workflow you need
 
   What you are doing              Command
   -----------------------------   -------------------------
-  About to publish / open a PR    axguard audit .   |  /axguard-audit
+  About to publish / open a PR    axguard preship . | axguard audit .
+  Pre-ship gate (ship / no-ship)  axguard preship . |  /axguard-preship
+  Security Diff (what changed?)   axguard diff [BASE] | axguard security-diff
   Quick check while coding        axguard scan .    |  /axguard-scan
   Map attack surface / app model  axguard surface . |  /axguard-surface
   Dataflow / taint paths          axguard flow .    |  /axguard-flow
@@ -806,13 +913,16 @@ AXguard — start with the workflow you need
   Triage → fix → report → CI      /axguard-triage · /axguard-fix · /axguard-report · /axguard-ci
 
 Pipeline:
+  Find → Explain → Fix → Verify → Ship
   threat-model → audit → triage → fix → report → ci
+  preship (gate) · diff (change impact)
 
 Reports land in:
   .findings/axguard/axguard-report.{html,md,json}
+  .findings/axguard/preship/preship-report.{html,md,json}
 
 Cheat sheet: COMMANDS-QUICK-REF.md
-Docs: docs/engagement.md · docs/contributors/README.md (local prefs, no telemetry)
+Docs: docs/preship.md · docs/security-diff.md · docs/engagement.md
 """.strip()
 
 
@@ -1333,6 +1443,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "predict":
         return _run_predict_command(args)
 
+    if args.command in {"diff", "security-diff"}:
+        return _run_diff_command(args)
+
+    if args.command in {"preship"}:
+        from engines.preship.cli import run_preship_command
+
+        return int(run_preship_command(args))
+
     parser.print_help()
     return 2
 
@@ -1354,6 +1472,115 @@ def _run_github_command(args: argparse.Namespace) -> int:
     except Exception as exc:  # noqa: BLE001
         print(f"error: github {action} failed: {exc}", file=sys.stderr)
         return 2
+
+
+def _run_diff_command(args: argparse.Namespace) -> int:
+    """Security Diff CLI — orchestrates existing engines, does not scan alone."""
+    if not getattr(args, "no_banner", False):
+        print_banner(compact=True)
+        print()
+
+    from engines.security_diff import (
+        run_security_diff,
+        save_baseline_from_project,
+        should_fail,
+    )
+    from engines.security_diff.report import (
+        render_text,
+        render_verbose,
+        to_json,
+        write_security_diff_report,
+    )
+
+    # axguard diff baseline save
+    if getattr(args, "diff_command", None) == "baseline":
+        name = getattr(args, "name", None) or "default"
+        if getattr(args, "diff_baseline_command", None) == "save":
+            path = Path(getattr(args, "path", ".") or ".").resolve()
+            out = save_baseline_from_project(path, name=name)
+            print(f"Saved Security Diff baseline '{name}' → {out}")
+            return 0
+        # axguard diff baseline  → compare to snapshot
+        result = run_security_diff(
+            project=".",
+            use_snapshot=True,
+            baseline_name=name,
+            fail_on=getattr(args, "fail_on", "none") or "none",
+            write_report=False,
+        )
+        if getattr(args, "as_json", False):
+            print(to_json(result), end="")
+        else:
+            print(render_text(result), end="")
+        return 1 if should_fail(result, getattr(args, "fail_on", "none") or "none") else 0
+
+    range_or_path = getattr(args, "range_or_path", None)
+    base = getattr(args, "base", None)
+    head = getattr(args, "head", None)
+    range_spec = None
+    project = "."
+
+    if range_or_path:
+        if range_or_path in {".", "./"} or Path(range_or_path).exists():
+            project = range_or_path
+            # Non-git path compare against snapshot when no --base
+            if base is None:
+                result = run_security_diff(
+                    project=project,
+                    use_snapshot=True,
+                    baseline_name=getattr(args, "baseline_name", "default") or "default",
+                    fail_on=args.fail_on,
+                    incremental=not args.no_incremental,
+                    investigate=bool(args.investigate),
+                    out_dir=args.out_dir,
+                    write_report=bool(args.html),
+                )
+                return _emit_diff_result(args, result)
+        elif "..." in range_or_path or ".." in range_or_path:
+            range_spec = range_or_path
+        else:
+            base = base or range_or_path
+
+    result = run_security_diff(
+        project=project,
+        base=base,
+        head=head,
+        range_spec=range_spec,
+        baseline_name=getattr(args, "baseline_name", "default") or "default",
+        fail_on=args.fail_on,
+        incremental=not args.no_incremental,
+        investigate=bool(args.investigate),
+        out_dir=args.out_dir,
+        write_report=bool(args.html),
+    )
+    return _emit_diff_result(args, result)
+
+
+def _emit_diff_result(args: argparse.Namespace, result: dict) -> int:
+    from engines.security_diff import should_fail
+    from engines.security_diff.report import (
+        render_text,
+        render_verbose,
+        to_json,
+        write_security_diff_report,
+    )
+
+    if getattr(args, "html", False) and not getattr(args, "as_json", False):
+        paths = write_security_diff_report(result, Path(args.out_dir))
+        print(f"Wrote Security Diff report → {paths.get('html')}")
+    if getattr(args, "as_json", False):
+        print(to_json(result), end="")
+    elif getattr(args, "verbose", False):
+        print(render_verbose(result), end="")
+    else:
+        print(render_text(result), end="")
+
+    if not getattr(args, "no_engage", False):
+        try:
+            _print_engagement(emit_for_paths(result))
+        except Exception:  # noqa: BLE001
+            pass
+    return 1 if should_fail(result, getattr(args, "fail_on", "none") or "none") else 0
 
 
 def _run_predict_command(args: argparse.Namespace) -> int:
