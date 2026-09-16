@@ -56,6 +56,8 @@ TOOL_TIERS: dict[str, ApprovalTier] = {
     # Predictive
     "axguard_predict_security_risks": ApprovalTier.AUTO,
     "axguard_analyze_change_risk": ApprovalTier.AUTO,
+    "axguard_security_diff": ApprovalTier.AUTO,
+    "axguard_preship": ApprovalTier.APPROVAL_REQUIRED,
 }
 
 # Operations that must never run autonomously via MCP

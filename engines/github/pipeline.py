@@ -322,6 +322,21 @@ def _run_core_analysis(
     except Exception as exc:  # noqa: BLE001
         predictive = {"available": False, "error": redact_secrets(str(exc))}
 
+    security_diff: dict[str, Any] | None = None
+    if base_workspace is not None and Path(base_workspace).is_dir():
+        try:
+            from engines.security_diff import security_diff as run_sd
+
+            security_diff = run_sd(
+                base=str(base_workspace),
+                head=str(target),
+                project=str(target),
+                options={"incremental": True, "skip_predict": True},
+            )
+            security_diff = redact_secrets(security_diff)
+        except Exception as exc:  # noqa: BLE001
+            security_diff = {"error": redact_secrets(str(exc))}
+
     return {
         "verification": verification,
         "adversary": adversary,
@@ -331,6 +346,7 @@ def _run_core_analysis(
         "investigation": investigation,
         "memory_summary": memory_summary,
         "predictive": predictive,
+        "security_diff": security_diff,
         "ai_mode": ai.get("mode"),
         "changed_files": files,
     }
@@ -366,6 +382,17 @@ def _build_pipeline_result(
     twin_summary: dict[str, Any] = {}
     if isinstance(twin, dict):
         twin_summary = redact_secrets(twin.get("regression") or twin.get("summary") or {})
+
+    # Soft: attach Security Diff summary for future PR check text (shared engine)
+    security_diff_summary = None
+    try:
+        sd = core.get("security_diff")
+        if isinstance(sd, dict) and sd.get("security_impact"):
+            from engines.security_diff.github_summary import format_github_pr_summary
+
+            security_diff_summary = format_github_pr_summary(sd)
+    except Exception:  # noqa: BLE001
+        security_diff_summary = None
 
     analysis_failed = bool(
         (isinstance(core.get("adversary"), dict) and core["adversary"].get("error"))
@@ -459,6 +486,8 @@ def _build_pipeline_result(
             "investigation_id": (core.get("investigation") or {}).get("investigation_id"),
             "untrusted_pr_title": None,
             "predictive": predictive,
+            "security_diff": core.get("security_diff"),
+            "security_diff_summary": security_diff_summary,
         },
     )
 

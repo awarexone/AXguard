@@ -43,6 +43,21 @@ Pre-ship security gate — not a full pentest platform. Scan source, triage nois
 
 ---
 
+## Pre-Ship Security
+
+Find → Explain → Fix → Verify → Ship.
+
+```bash
+axguard preship .
+```
+
+AXGuard analyzes security-sensitive changes, verifies findings, checks attack paths and security regressions, and tells you whether the application is ready to ship.
+
+- Pre-Ship: [docs/preship.md](docs/preship.md)
+- Security Diff: [docs/security-diff.md](docs/security-diff.md)
+
+---
+
 ## What is AXguard?
 
 **AXguard is a pre-ship security gate.**
@@ -222,6 +237,8 @@ open .findings/axguard/axguard-report.html
 | Security Memory | `axguard memory record .` → [docs/memory](docs/memory/README.md) |
 | Investigation Agent | `axguard investigate .` → [docs/investigation](docs/investigation/README.md) |
 | Predictive security risk | `axguard predict .` → [docs/predictive](docs/predictive/README.md) |
+| Security Diff | `axguard diff` → [docs/security-diff.md](docs/security-diff.md) |
+| Pre-Ship gate | `axguard preship .` → [docs/preship.md](docs/preship.md) |
 | Local Security Intelligence API | `axguard api start` → [docs/api](docs/api/overview.md) |
 | MCP for AI coding agents | `axguard mcp` → [docs/mcp.md](docs/mcp.md) |
 | GitHub PR bot (self-host) | `axguard github setup` → [docs/github](docs/github/README.md) |
@@ -356,6 +373,16 @@ axguard predict --architecture
 axguard predict --agent
 axguard predict --mcp
 axguard predict --what-if
+
+# Security Diff (security-aware comparison of two versions)
+axguard diff
+axguard diff HEAD~1
+axguard diff main...HEAD
+axguard diff --base main --head HEAD
+axguard diff --json
+axguard diff --verbose
+axguard diff --fail-on high
+axguard diff baseline save
 
 # Training-data pipeline (no model training)
 axguard data discover
