@@ -2,9 +2,9 @@
 
 AXGuard’s **AI-agent security interface** over the [Model Context Protocol](https://modelcontextprotocol.io/).
 
-MCP does not duplicate scanners or security reasoning. It is a thin adapter over the shared AXGuard engines (application understanding, data flow, evidence, judge, adversary, attack graph, twin, memory, investigation, predictive).
+MCP does not duplicate scanners or security reasoning. It is a thin adapter over the shared AXGuard engines (application understanding, data flow, evidence, judge, adversary, attack graph, twin, memory, investigation, predictive, **security diff**).
 
-Protocol research: [mcp-research.md](mcp-research.md) · Client setup: [mcp-config.md](mcp-config.md) · Tools: [mcp-tools.md](mcp-tools.md) · Security: [mcp-security.md](mcp-security.md)
+Protocol research: [mcp-research.md](mcp-research.md) · Client setup: [mcp-config.md](mcp-config.md) · Tools: [mcp-tools.md](mcp-tools.md) · Security: [mcp-security.md](mcp-security.md) · Security Diff: [security-diff.md](security-diff.md)
 
 ---
 
@@ -49,6 +49,8 @@ No AwareXone account, API key, hosted backend, or central telemetry is required.
 ---
 
 ## Primary tool: `axguard_security_review`
+Also: `axguard_preship` (ship gate) and `axguard_security_diff` (change impact). See [preship.md](preship.md) · [security-diff.md](security-diff.md).
+
 
 Agents should prefer this high-level tool over manually chaining every internal engine.
 

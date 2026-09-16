@@ -625,7 +625,112 @@ def axguard_analyze_change_risk(
     )
 
 
-@as_tool
+def axguard_security_diff(
+    path: str | None = None,
+    base: str | None = None,
+    head: str | None = None,
+    base_path: str | None = None,
+    approved: bool = False,
+) -> dict[str, Any]:
+    """Compare two application states — security-aware diff for agents."""
+    sess = _sess()
+    sess.begin_tool()
+    enforce("axguard_security_diff", approved=approved)
+    try:
+        from engines.security_diff import security_diff
+        from engines.security_diff.github_summary import compact_mcp_response
+        from engines.security_diff.render import render_security_diff_text
+
+        project = bridge.require_path(sess, path) if path else sess.project_root
+        result = security_diff(
+            base=base_path or base,
+            head=head,
+            project=project,
+            options={"incremental": True, "skip_predict": False},
+        )
+        try:
+            compact = compact_mcp_response(result)
+        except Exception:  # noqa: BLE001
+            compact = {
+                "baseline": result.get("baseline"),
+                "overall_security_change": result.get("overall_security_change"),
+                "summary": result.get("summary"),
+                "authz_changes": result.get("authz_changes"),
+                "tenant_changes": result.get("tenant_changes"),
+                "control_changes": result.get("control_changes"),
+                "categories": result.get("categories"),
+                "text": render_security_diff_text(result),
+            }
+        impact = str(
+            (result.get("security_impact") or {}).get("level")
+            or result.get("overall_security_change")
+            or "UNKNOWN"
+        )
+        conf = (
+            "HIGH"
+            if impact in {"HIGH", "CRITICAL"}
+            else "MEDIUM"
+            if impact == "MEDIUM"
+            else "LOW"
+        )
+        return _ok(compact, state="OBSERVED", confidence=conf)
+    except Exception as exc:  # noqa: BLE001
+        return McpError(
+            "ANALYSIS_FAILED",
+            f"Security diff failed: {exc}",
+            details={"type": type(exc).__name__},
+        ).as_dict()
+
+
+def axguard_preship(
+    path: str | None = None,
+    mode: str = "STANDARD",
+    base: str | None = None,
+    approved: bool = False,
+) -> dict[str, Any]:
+    sess = _sess()
+    sess.begin_tool()
+    enforce("axguard_preship", approved=approved)
+    target = bridge.require_path(sess, path)
+    try:
+        from engines.preship import run_preship
+
+        result = run_preship(
+            target if target.is_dir() else sess.project_root,
+            mode=mode,
+            base_ref=base,
+            out_dir=sess.findings_dir() / "preship",
+        )
+        return _ok(
+            {
+                "decision": result.get("decision"),
+                "blocking_reason": result.get("blocking_reason"),
+                "review_why": result.get("review_why"),
+                "exit_code": result.get("exit_code"),
+                "summary": {
+                    "finding_count": len(result.get("findings") or []),
+                    "predictive_count": len(result.get("predictive_risks") or []),
+                    "regression_count": len(result.get("regressions") or []),
+                    "overall_security_change": (result.get("security_diff") or {}).get(
+                        "overall_security_change"
+                    ),
+                },
+                "security_diff_baseline": (result.get("security_diff") or {}).get("baseline"),
+                "report_paths": result.get("report_paths"),
+            },
+            state="JUDGED",
+            confidence="HIGH"
+            if result.get("decision") in {"PASS", "FAIL"}
+            else "MEDIUM",
+        )
+    except Exception as exc:  # noqa: BLE001
+        return McpError(
+            "ANALYSIS_FAILED",
+            f"Pre-ship failed: {exc}",
+            details={"type": type(exc).__name__},
+        ).as_dict()
+
+
 def axguard_security_review_tool(
     mode: str = "BALANCED",
     scope: str = "project",
@@ -667,4 +772,6 @@ HANDLERS: dict[str, Any] = {
     "axguard_get_investigation": as_tool(axguard_get_investigation),
     "axguard_predict_security_risks": as_tool(axguard_predict_security_risks),
     "axguard_analyze_change_risk": as_tool(axguard_analyze_change_risk),
+    "axguard_security_diff": as_tool(axguard_security_diff),
+    "axguard_preship": as_tool(axguard_preship),
 }

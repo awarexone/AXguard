@@ -312,6 +312,28 @@ def _register_simple_tools(mcp, ann_fn, wrap_fn) -> None:
     def axguard_analyze_change_risk(base: str, path: str | None = None, approved: bool = False) -> dict[str, Any]:
         return wrap_fn(HANDLERS["axguard_analyze_change_risk"])(base=base, path=path, approved=approved)
 
+    @mcp.tool(name="axguard_security_diff", description=by_name["axguard_security_diff"]["description"], annotations=ann_fn("axguard_security_diff"))
+    def axguard_security_diff(
+        path: str | None = None,
+        base: str | None = None,
+        head: str | None = None,
+        approved: bool = False,
+    ) -> dict[str, Any]:
+        return wrap_fn(HANDLERS["axguard_security_diff"])(
+            path=path, base=base, head=head, approved=approved
+        )
+
+    @mcp.tool(name="axguard_preship", description=by_name["axguard_preship"]["description"], annotations=ann_fn("axguard_preship"))
+    def axguard_preship(
+        path: str | None = None,
+        mode: str = "STANDARD",
+        base: str | None = None,
+        approved: bool = False,
+    ) -> dict[str, Any]:
+        return wrap_fn(HANDLERS["axguard_preship"])(
+            path=path, mode=mode, base=base, approved=approved
+        )
+
 
 def serve_stdio(*, project_root: str | Path | None = None) -> None:
     """Run the MCP server over stdio (primary local transport)."""

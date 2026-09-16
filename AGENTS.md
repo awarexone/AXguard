@@ -10,6 +10,7 @@
 | Doing | Command / skill |
 |---|---|
 | Full audit | `/axguard-audit` or skill `axguard-audit` |
+| Security Diff | `/axguard-diff` · `axguard diff` · MCP `axguard_security_diff` |
 | Security lead pass | skill `axguard-cso` |
 | Triage | `/axguard-triage` |
 | Fix | `/axguard-fix` / skill `axguard-remediate` |

@@ -4,6 +4,8 @@
 
 | Doing this | Run |
 |---|---|
+| **Pre-Ship gate (ship / no-ship)** | `axguard preship .` → [docs/preship.md](docs/preship.md) |
+| **Security Diff (what changed?)** | `axguard diff` / `axguard security-diff` → [docs/security-diff.md](docs/security-diff.md) |
 | Full pre-ship audit + HTML/MD | `/axguard-audit` |
 | Fast scan | `/axguard-scan` |
 | Map app / attack surface | `/axguard-surface` |
@@ -16,6 +18,7 @@
 | Investigation Agent | `axguard investigate …` |
 | GitHub Security Bot | `axguard github setup\|validate\|test\|status` |
 | Predictive Security | `axguard predict …` |
+| Security Diff (what changed?) | `axguard diff` · `/axguard-diff` → [docs/security-diff.md](docs/security-diff.md) |
 | Local Security Intelligence API | `axguard api start` → `http://127.0.0.1:8787` |
 | MCP (AI coding agents) | `axguard mcp` · `serve` · `doctor` · `tools` → [docs/mcp.md](docs/mcp.md) |
 | Training-data pipeline | `/axguard-data` |

@@ -20,6 +20,10 @@ Annotations are MCP **hints** (`readOnlyHint`, `destructiveHint`, `idempotentHin
 
 ## Primary
 
+### `axguard_preship` / `axguard_security_diff`
+
+Pre-Ship gate and Security Diff. Prefer these when asking "can I ship?" or "what became more dangerous?". Details: [preship.md](preship.md) · [security-diff.md](security-diff.md).
+
 ### `axguard_security_review`
 
 **Approval:** APPROVAL_REQUIRED (esp. `DEEP` / `MAX`) · **Annotations:** `readOnlyHint=true`, `destructiveHint=false`, `idempotentHint=true`, `openWorldHint=false`
@@ -136,6 +140,7 @@ Never invent evidence from model speculation.
 |---|---|---|---|
 | `axguard_predict_security_risks` | AUTO | RO, idempotent | Risk **expansion** signals — never label as confirmed vulns. |
 | `axguard_analyze_change_risk` | AUTO | RO, idempotent | Change-focused predictive view (PR/diff). |
+| `axguard_security_diff` | AUTO | RO, idempotent | Compare two app states — attack surface, controls, data flows, privileges, trust boundaries, attack paths, regressions, predictive risks. |
 
 ---
 
