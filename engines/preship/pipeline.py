@@ -234,10 +234,21 @@ def run_preship(
                 incremental=mode_u == MODE_QUICK,
             )
         else:
-            # Try HEAD~1 when git; else snapshot / UNKNOWN via pipeline
+            # Try HEAD~1 only when target is the git worktree root; otherwise
+            # subdirectory targets (fixtures) would diff the whole monorepo.
+            quick_base = None
+            if mode_u == MODE_QUICK:
+                try:
+                    from engines.security_diff.git_base import git_root
+
+                    gr = git_root(root)
+                    if gr is not None and gr.resolve() == root.resolve():
+                        quick_base = "HEAD~1"
+                except Exception:  # noqa: BLE001
+                    quick_base = None
             security_diff = run_security_diff(
                 project=root,
-                base="HEAD~1" if mode_u == MODE_QUICK else None,
+                base=quick_base,
                 use_snapshot=mode_u != MODE_QUICK,
                 write_report=False,
                 incremental=True,
