@@ -1,7 +1,7 @@
 # AXGuard MCP → Agent Skill Roadmap
 
 **Date:** 2026-09-17  
-**Status:** Skill implemented — `skills/axguard-security/` (behavioral wrapper over MCP; no duplicated engines).  
+**Status:** Skill implemented — `axguard-security/` (behavioral wrapper over MCP; no duplicated engines).  
 **Related:** [mcp-research.md](./mcp-research.md), [mcp-threat-model.md](./mcp-threat-model.md), [mcp.md](./mcp.md)
 
 ---
@@ -29,7 +29,7 @@ name: axguard-security
 description: Analyze code for security vulnerabilities, investigate findings, verify fixes, and assess security risk before deployment.
 ```
 
-Path: `skills/axguard-security/SKILL.md`
+Path: `axguard-security/SKILL.md`
 
 The skill instructs:
 

@@ -26,6 +26,6 @@ Public Sources → Collection → Normalization → Dedup → Classification
 → Validation → Framework Mapping → Skill Generation → Review → SKILL.md
 ```
 
-Skill registry: [`../skills/index.yaml`](../skills/index.yaml)  
+Skill registry: [`../skills-index.yaml`](../skills-index.yaml)  
 Schema: [`../docs/SKILL-SCHEMA.md`](../docs/SKILL-SCHEMA.md)  
 Validator: `python scripts/validate_skills.py`

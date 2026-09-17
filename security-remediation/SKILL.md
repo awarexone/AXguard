@@ -114,9 +114,9 @@ Operational skill — inherit CWE/OWASP IDs from the finding’s domain skill wh
 
 ## References
 
-- AXGuard `skills/axguard-remediate/SKILL.md`
+- AXGuard `axguard-remediate/SKILL.md`
 - https://owasp.org/www-project-cheat-sheets/ (methodology; no large verbatim copies)
-- Domain skill Remediation sections in `skills/security/`
+- Remediation sections in the domain skills
 
 ## Research Provenance
 

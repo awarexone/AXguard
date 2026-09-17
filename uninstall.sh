@@ -7,25 +7,17 @@ AGENT="${AXGUARD_AGENT:-claude}"
 SCOPE="global"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-SKILLS=(
-  axguard-audit axguard-preship axguard-cso axguard-triage axguard-remediate axguard-report axguard-knowledge
-  threat-modeling attack-surface-mapping security-architecture-review
-  authentication-analysis authorization-analysis session-security jwt-security oauth-security
-  api-security sql-injection xss-analysis ssrf-analysis ssti-analysis command-injection
-  path-traversal file-upload-security deserialization-security prototype-pollution
-  graphql-security websocket-security
-  secrets-detection cloud-security configuration-security supply-chain-security
-  ai-application-security prompt-injection ai-agent-security mcp-security
-  security-triage security-remediation
-)
-COMMANDS=(
-  axguard-audit.md axguard-scan.md axguard-surface.md axguard-flow.md axguard-verify.md axguard-adversary.md axguard-evidence.md axguard-paths.md axguard-data.md axguard-secrets.md axguard-auth.md
-  axguard-inject.md axguard-ssrf.md axguard-xss.md axguard-cloud.md
-  axguard-agent.md axguard-sql.md axguard-ssti.md axguard-path.md
-  axguard-crypto.md axguard-supply.md axguard-graphql.md axguard-upload.md
-  axguard-debug.md axguard-threat-model.md axguard-triage.md axguard-fix.md
-  axguard-report.md axguard-ci.md
-)
+# Derived from the repo so these lists can never drift from what install.sh ships.
+SKILLS=()
+while IFS= read -r skill_md; do
+  SKILLS+=("$(basename "$(dirname "$skill_md")")")
+done < <(find "$ROOT" -mindepth 2 -maxdepth 2 -type f -name SKILL.md 2>/dev/null | sort)
+
+COMMANDS=()
+for cmd in "$ROOT"/commands/*.md; do
+  [ -f "$cmd" ] || continue
+  COMMANDS+=("$(basename "$cmd")")
+done
 
 while [ "$#" -gt 0 ]; do
   case "$1" in

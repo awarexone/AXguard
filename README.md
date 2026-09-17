@@ -6,20 +6,13 @@
 
 > **Open-source AI security tool to scan and fix vulnerabilities in your vibe-coded apps before you ship.**
 
-[![MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
-[![Version](https://img.shields.io/badge/version-0.2.0-purple.svg)](#)
-[![CI](https://github.com/Awarexone/AXguard/actions/workflows/ci.yml/badge.svg)](https://github.com/Awarexone/AXguard/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/Awarexone/AXguard/actions/workflows/codeql.yml/badge.svg)](https://github.com/Awarexone/AXguard/actions/workflows/codeql.yml)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Awarexone/AXguard/badge)](https://scorecard.dev/viewer/?uri=github.com/Awarexone/AXguard)
-[![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-black.svg)](https://claude.ai/claude-code)
-[![Cursor](https://img.shields.io/badge/Cursor-skills-black.svg)](https://cursor.com/)
-
 **CLI + AI agent plugin for Claude Code, Cursor, OpenCode, Codex, and shared Agent Skills.**
 
 Pre-ship security gate — not a full pentest platform. Scan source, triage noise, fix what matters, and gate releases before you publish.
 
 [Website](https://awarexone.com/) · [GitHub](https://github.com/Awarexone) · [Dev Docs](DEV.md) · [Commands](COMMANDS-QUICK-REF.md) · [Contributing](CONTRIBUTING.md)
+
+**Talk to us** — general questions [hello@awarexone.com](mailto:hello@awarexone.com) · sponsorship & partnerships [b2b@awarexone.com](mailto:b2b@awarexone.com) · founder [shuvon@awarexone.com](mailto:shuvon@awarexone.com)
 
 ---
 
@@ -43,6 +36,14 @@ Detection is deterministic: **47 rules** across 16 JSON packs, plus five dedicat
 ---
 
 ## Quick start
+
+### Open Claude Code and paste this. Claude does the rest.
+
+> Install AXguard: run `git clone https://github.com/Awarexone/AXguard.git ~/AXguard && cd ~/AXguard && chmod +x install.sh uninstall.sh && ./install.sh` then create a Python virtualenv in `~/AXguard` and `pip install -e .` so the `axguard` CLI works. Then add an "AXguard" section to CLAUDE.md that says to run an AXguard security pass before shipping, and lists the available commands: /axguard-audit, /axguard-scan, /axguard-threat-model, /axguard-triage, /axguard-fix, /axguard-report, /axguard-ci, /axguard-surface, /axguard-flow, /axguard-verify, /axguard-adversary, /axguard-evidence, /axguard-paths, /axguard-secrets, /axguard-auth, /axguard-inject, /axguard-sql, /axguard-ssti, /axguard-path, /axguard-ssrf, /axguard-xss, /axguard-upload, /axguard-crypto, /axguard-supply, /axguard-graphql, /axguard-cloud, /axguard-debug, /axguard-agent, /axguard-data, /axguard-contribute, /axguard-privacy. Then ask me whether to install it for my other agents too with `./install.sh --agent all`.
+
+Then run `/axguard-audit` on any repo.
+
+### Or do it by hand
 
 ```bash
 git clone https://github.com/Awarexone/AXguard.git
@@ -469,18 +470,32 @@ Same `--agent` and `--global` / `--project` options as `install.sh`. To remove t
 
 ## Project structure
 
+Each skill is its own top-level directory containing a `SKILL.md`, so the whole
+catalogue is visible from the repo root.
+
 ```text
 AXguard/
+├── axguard-audit/       # 8 orchestration skills, named axguard-*
+├── axguard-cso/
+├── …
+├── sql-injection/       # 30 security domain skills
+├── prompt-injection/
+├── jwt-security/
+├── …
+├── skills-index.yaml    # skill registry — name, domain, path
+├── commands/            # 31 slash commands
 ├── cli/                 # axguard CLI entrypoint
 ├── engines/             # scanners, diagnostics, adapters
 ├── rules/               # detection rule packs (*.json)
-├── skills/              # agent skills (8 orchestration + 30 security)
-├── commands/            # 31 slash commands
 ├── fixtures/            # deliberately vulnerable test apps
 ├── tests/               # 438 tests
 ├── scripts/             # skill validation
 └── docs/                # developer and feature documentation
 ```
+
+Domain grouping (`ai`, `application`, `discovery`, `identity`, `infrastructure`,
+`operations`) lives in the `domain:` field of `skills-index.yaml` rather than in
+the directory tree.
 
 ## Docs
 
@@ -525,8 +540,24 @@ AXguard is free and open source.
 
 If it helps you build safer software, a **star on GitHub** helps more builders find it. You can also support the project directly and help fund more open-source security tools.
 
-**Website:** [awarexone.com](https://awarexone.com/)  
-**Email:** [hello@awarexone.com](mailto:hello@awarexone.com) · [b2b@awarexone.com](mailto:b2b@awarexone.com) · [shuvon@awarexone.com](mailto:shuvon@awarexone.com)  
+### Get in touch
+
+Pick the address that matches what you need — it reaches the right person faster.
+
+| You want to | Email |
+|---|---|
+| **Ask a question, report a bug, or say hello** | [hello@awarexone.com](mailto:hello@awarexone.com) |
+| **Sponsor AXguard, partner with us, or talk commercial and B2B** | [b2b@awarexone.com](mailto:b2b@awarexone.com) |
+| **Reach the founder directly** | [shuvon@awarexone.com](mailto:shuvon@awarexone.com) |
+
+Security vulnerabilities in AXguard itself go to [SECURITY.md](.github/SECURITY.md), not to a public issue.
+
+**Website:** [awarexone.com](https://awarexone.com/)
+
+### Fund the work
+
+Sponsorship keeps AXguard free and open source. If your company ships AI-generated code and AXguard saves you a bad release, [b2b@awarexone.com](mailto:b2b@awarexone.com) is the conversation.
+
 **Buy Me a Coffee:** [buymeacoffee.com/shuvonsec](https://www.buymeacoffee.com/shuvonsec)
 
 | | |

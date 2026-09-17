@@ -9,7 +9,7 @@ This skill does **not** implement security analysis. It teaches when to use AXGu
 
 **Primary interface:** AXGuard MCP tools (prefer over ad-hoc scans).  
 **Fallback:** if MCP is unavailable, `axguard scan .` / `axguard audit .` — then still apply the same verdict rules below.  
-Tool names: `references/mcp-tools.md` · catalog: [docs/mcp-tools.md](../../docs/mcp-tools.md).
+Tool names: `references/mcp-tools.md` · catalog: [docs/mcp-tools.md](../docs/mcp-tools.md).
 
 ## When to call AXGuard
 

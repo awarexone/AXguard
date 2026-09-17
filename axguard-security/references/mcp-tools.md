@@ -1,6 +1,6 @@
 # MCP tools (names only)
 
-Prefer these over inventing scanner chains. Full contracts: [docs/mcp-tools.md](../../../docs/mcp-tools.md).
+Prefer these over inventing scanner chains. Full contracts: [docs/mcp-tools.md](../../docs/mcp-tools.md).
 
 | Tool | Role |
 |------|------|

@@ -389,6 +389,6 @@ Keep AI rows in a separate corpus file until schema union is implemented; link w
 
 - Attack-path fixture: `fixtures/attack_paths_corpus/ai_mcp_tool_abuse.py`
 - Rules: `rules/agent.json`, `rules/advanced.json`
-- Skills: `skills/security/ai/prompt-injection/SKILL.md`, `ai-agent-security/SKILL.md`, `mcp-security/SKILL.md`
+- Skills: `prompt-injection/SKILL.md`, `ai-agent-security/SKILL.md`, `mcp-security/SKILL.md`
 - FP reason alignment: `docs/data/research/false-positive-corpus.md`
 - Architecture: `docs/architecture.md` (Phase 4 adversary, Phase 6 attack graph)

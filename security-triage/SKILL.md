@@ -108,7 +108,7 @@ Operational skill — no primary CWE/OWASP entry. Findings retain the framework 
 
 ## References
 
-- AXGuard `skills/axguard-triage/SKILL.md`
+- AXGuard `axguard-triage/SKILL.md`
 - https://owasp.org/Top10/ (severity context only)
 
 ## Research Provenance

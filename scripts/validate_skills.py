@@ -8,16 +8,21 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL_ROOTS = [ROOT / "skills"]
-INDEX = ROOT / "skills" / "index.yaml"
+INDEX = ROOT / "skills-index.yaml"
+
+# Skills live in top-level directories. Orchestration skills are named
+# axguard-*; everything else is a security domain skill, which carries
+# stricter frontmatter and section requirements.
+ORCHESTRATION_PREFIX = "axguard-"
 
 
 def iter_skills():
-    for base in SKILL_ROOTS:
-        if not base.exists():
-            continue
-        for path in sorted(base.rglob("SKILL.md")):
-            yield path
+    for path in sorted(ROOT.glob("*/SKILL.md")):
+        yield path
+
+
+def is_domain_skill(path) -> bool:
+    return not path.parent.name.startswith(ORCHESTRATION_PREFIX)
 
 
 def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
@@ -60,7 +65,7 @@ def main() -> int:
         names[name] = path
         if not meta.get("description"):
             errors.append(f"{path}: missing description")
-        if "skills/security/" in str(path).replace("\\", "/"):
+        if is_domain_skill(path):
             for key in ("version", "domain", "license"):
                 if key not in meta:
                     errors.append(f"{path}: security skill missing '{key}'")
@@ -76,16 +81,16 @@ def main() -> int:
         for rel in parse_index_paths(index_text):
             p = ROOT / rel
             if not p.is_file():
-                errors.append(f"skills/index.yaml: missing path {rel}")
+                errors.append(f"skills-index.yaml: missing path {rel}")
         # Every security domain skill should be registered
         for path in iter_skills():
-            if "skills/security/" not in str(path).replace("\\", "/"):
+            if not is_domain_skill(path):
                 continue
             rel = str(path.relative_to(ROOT)).replace("\\", "/")
             if rel not in index_text:
-                errors.append(f"skills/index.yaml: unlisted security skill {rel}")
+                errors.append(f"skills-index.yaml: unlisted security skill {rel}")
     else:
-        errors.append("skills/index.yaml missing")
+        errors.append("skills-index.yaml missing")
 
     print(f"skills scanned: {count}")
     if errors:

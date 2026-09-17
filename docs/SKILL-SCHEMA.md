@@ -1,6 +1,6 @@
 # Skill frontmatter schema (AXGuard)
 
-Every domain skill under `skills/security/` SHOULD use this YAML frontmatter.
+Every domain skill — any top-level skill directory not named `axguard-*` — SHOULD use this YAML frontmatter.
 
 ```yaml
 ---
