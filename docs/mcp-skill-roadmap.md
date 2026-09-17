@@ -1,14 +1,14 @@
 # AXGuard MCP → Agent Skill Roadmap
 
 **Date:** 2026-09-17  
-**Status:** Foundation only — **not** a full Agent Skill implementation.  
-**Related:** [mcp-research.md](./mcp-research.md), [mcp-threat-model.md](./mcp-threat-model.md)
+**Status:** Skill implemented — `skills/axguard-security/` (behavioral wrapper over MCP; no duplicated engines).  
+**Related:** [mcp-research.md](./mcp-research.md), [mcp-threat-model.md](./mcp-threat-model.md), [mcp.md](./mcp.md)
 
 ---
 
 ## Purpose
 
-Document how a future **AXGuard Agent Skill** should sit **above** MCP without duplicating security logic, tool schemas, or finding/evidence formats.
+Document how the **AXGuard Agent Skill** sits **above** MCP without duplicating security logic, tool schemas, or finding/evidence formats.
 
 ```text
 Agent Skill          ← teaches when/how to use AXGuard
@@ -22,23 +22,25 @@ Do **not** implement the Skill as a replacement for MCP.
 
 ---
 
-## Future skill YAML (from product brief)
+## Skill package
 
 ```yaml
 name: axguard-security
-description: Scan applications for security vulnerabilities, investigate findings, and help verify fixes before deployment.
+description: Analyze code for security vulnerabilities, investigate findings, verify fixes, and assess security risk before deployment.
 ```
 
-The skill should instruct the agent roughly:
+Path: `skills/axguard-security/SKILL.md`
+
+The skill instructs:
 
 ```text
 Before shipping security-sensitive code:
-1. Use AXGuard security review.
+1. Use AXGuard security review (MCP).
 2. Investigate suspicious findings.
 3. Review evidence and counter-evidence.
 4. Check attack paths and regressions.
 5. Separate verified findings from predictive risk.
-6. Verify fixes before declaring an issue resolved.
+6. Verify fixes with axguard_verify_fix before declaring resolved.
 ```
 
 ---
@@ -51,7 +53,7 @@ Before shipping security-sensitive code:
 | **MCP** | Tool/resource/prompt surface; structured outputs; policy gates; path/network limits | Host-agent pedagogy beyond tool descriptions |
 | **Core** | All security reasoning | Client-specific UX copy |
 
-Reuse MCP tool names (`axguard_security_review`, `axguard_investigate`, …) and schemas so the Skill is a thin behavioral wrapper.
+Reuse MCP tool names (`axguard_security_review`, `axguard_investigate`, `axguard_verify_fix`, …) and schemas so the Skill is a thin behavioral wrapper.
 
 ---
 
@@ -86,8 +88,8 @@ MCP
 
 | Phase | Deliverable | Notes |
 |---|---|---|
-| **Now** | Native MCP server (stdio), `axguard_security_review`, policy, docs | This initiative |
-| **Next** | Agent Skill package (`axguard-security`) wrapping MCP tools | No duplicated engines; YAML + playbook only |
+| **Done** | Native MCP server (stdio), `axguard_security_review`, policy, docs | PR #22 |
+| **Done** | Agent Skill (`axguard-security`) + `axguard_verify_fix` | This initiative |
 | **Later** | GitHub Actions invoking the same core/API | MCP stays independent of GitHub |
 | **Later** | GitHub Security Review / App comments & checks | Reuse review engine; do not couple MCP transport to GitHub |
 
@@ -112,11 +114,4 @@ All converge on the **same** AXGuard security engine.
 2. Keep MCP output free of marketing; Skill may add human-facing onboarding separately.
 3. Local-first: Skill install must not require AwareXone cloud.
 4. Prefer teaching agents to call `axguard_security_review` before inventing ad-hoc scanner chains.
-
----
-
-## Non-goals (this document)
-
-- Full `SKILL.md` body or installer
-- Shipping Skill files under `skills/` in this pass
-- GitHub App / Actions implementation
+5. Prefer `axguard_verify_fix` after remediations — never resolve on path rename alone.

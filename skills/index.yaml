@@ -25,6 +25,10 @@ skills:
   - name: axguard-knowledge
     domain: operations
     path: skills/axguard-knowledge/SKILL.md
+  - name: axguard-security
+    domain: operations
+    path: skills/axguard-security/SKILL.md
+    related: [axguard-preship, axguard-audit, axguard-remediate]
 
   # Domain skills — discovery (3)
   - name: threat-modeling

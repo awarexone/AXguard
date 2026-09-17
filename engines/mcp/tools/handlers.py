@@ -275,6 +275,23 @@ def axguard_verify_finding(finding_id: str | None = None, approved: bool = False
     )
 
 
+def axguard_verify_fix(
+    finding_id: str | None = None,
+    fingerprint: str | None = None,
+    path: str | None = None,
+    approved: bool = False,
+) -> dict[str, Any]:
+    from engines.mcp.tools.verify_fix import run_verify_fix
+
+    return run_verify_fix(
+        finding_id=finding_id,
+        fingerprint=fingerprint,
+        path=path,
+        approved=approved,
+        session=_sess(),
+    )
+
+
 def _ensure_evidence(sess: McpSession) -> dict[str, Any]:
     if sess.last_evidence:
         return sess.last_evidence
@@ -650,6 +667,7 @@ HANDLERS: dict[str, Any] = {
     "axguard_list_findings": as_tool(axguard_list_findings),
     "axguard_get_finding": as_tool(axguard_get_finding),
     "axguard_verify_finding": as_tool(axguard_verify_finding),
+    "axguard_verify_fix": as_tool(axguard_verify_fix),
     "axguard_get_evidence": as_tool(axguard_get_evidence),
     "axguard_get_evidence_chain": as_tool(axguard_get_evidence_chain),
     "axguard_get_counter_evidence": as_tool(axguard_get_counter_evidence),

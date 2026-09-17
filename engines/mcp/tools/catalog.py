@@ -200,6 +200,23 @@ _TOOL_SPECS: list[tuple[str, str, dict[str, Any]]] = [
         },
     ),
     (
+        "axguard_verify_fix",
+        (
+            "Re-analyze after a remediation and classify the prior finding as "
+            "RESOLVED, STILL_PRESENT, or REGRESSED using fingerprints — never "
+            "mark resolved solely because a file path changed. Call after the "
+            "agent applies a fix for a known finding. Read-only re-scan. "
+            "Requires approved=true. Does not modify source."
+        ),
+        {
+            "title": "Verify Fix",
+            "readOnlyHint": True,
+            "destructiveHint": False,
+            "idempotentHint": False,
+            "openWorldHint": False,
+        },
+    ),
+    (
         "axguard_get_evidence",
         (
             "Return supporting evidence items for the last evidence run or "

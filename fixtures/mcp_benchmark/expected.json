@@ -17,7 +17,8 @@
     "when_not_to_call",
     "unknown_cases",
     "reject_malicious",
-    "security_regressions"
+    "security_regressions",
+    "fix_verification"
   ],
   "cases": [
     "01_tool_discovery",
@@ -26,7 +27,9 @@
     "04_when_not_to_call",
     "05_unknown_cases",
     "06_reject_malicious",
-    "07_security_regressions"
+    "07_security_regressions",
+    "08_fix_verification",
+    "09_skill_tool_selection"
   ],
   "metrics": [
     "tool_discovery",

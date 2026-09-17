@@ -1,0 +1,30 @@
+{
+  "id": "08_fix_verification",
+  "category": "fix_verification",
+  "prompt": "I applied a fix for missing object-level authorization. Confirm whether the finding is resolved.",
+  "expected": {
+    "label": "SHOULD_CALL",
+    "primary_tool": "axguard_verify_fix",
+    "outcomes": ["RESOLVED", "STILL_PRESENT", "REGRESSED"],
+    "forbidden": ["mark resolved solely because path changed"]
+  },
+  "cases": [
+    {
+      "name": "fingerprint_gone",
+      "expected_status": "RESOLVED"
+    },
+    {
+      "name": "same_fingerprint",
+      "expected_status": "STILL_PRESENT"
+    },
+    {
+      "name": "severity_worse",
+      "expected_status": "REGRESSED"
+    },
+    {
+      "name": "path_rename_same_fingerprint",
+      "expected_status": "STILL_PRESENT",
+      "must_not": "RESOLVED"
+    }
+  ]
+}

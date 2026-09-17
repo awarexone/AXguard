@@ -73,8 +73,11 @@ Does **not** modify source, execute exploits, or treat predictive risk as a veri
 | `axguard_list_findings` | AUTO | RO, idempotent | Summaries after scan/review. Use progressive disclosure. |
 | `axguard_get_finding` | AUTO | RO, idempotent | One finding: severity, confidence, location, verdict. |
 | `axguard_verify_finding` | AUTO / APPROVAL_REQUIRED (deep) | RO, idempotent | Hunter→Judge style verification for a candidate. |
+| `axguard_verify_fix` | APPROVAL_REQUIRED | RO | After a fix: re-scan and return `RESOLVED` / `STILL_PRESENT` / `REGRESSED` by fingerprint. Never resolve on path rename alone. |
 
 Verdicts remain AXGuard-owned (`VERIFIED` · `LIKELY` · `UNVERIFIED` · `FALSE_POSITIVE` · `REQUIRES_REVIEW`). Agents must not “declare vulnerable” without this evidence path.
+
+**Agent Skill:** prefer MCP tools via `skills/axguard-security` rather than inventing scan chains.
 
 ---
 

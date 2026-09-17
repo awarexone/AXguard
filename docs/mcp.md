@@ -76,9 +76,27 @@ Typical agent result shape: decision, risk, verified findings, evidence, attack 
 | Possible vulnerability to dig into | `axguard_investigate` |
 | Authz / agent / MCP permission changes | `axguard_security_review` |
 | “What attack paths does this create?” | `axguard_find_attack_paths` / review |
-| Fix applied — confirm resolved | `axguard_security_review` or `axguard_verify_finding` |
+| Fix applied — confirm resolved | `axguard_verify_fix` (never mark resolved on file edit alone) |
 
 Full catalog and approval tiers: [mcp-tools.md](mcp-tools.md).
+
+---
+
+## Agent Skill
+
+The behavioral layer above MCP (no duplicated scanners):
+
+```text
+AI Coding Agent
+      ↓
+AXGuard Agent Skill (`skills/axguard-security`)
+      ↓
+AXGuard MCP
+      ↓
+AXGuard Security Engine
+```
+
+Skill teaches **when** to call AXGuard, **which** tool, and **how** to interpret VERIFIED / UNKNOWN / FALSE_POSITIVE / PREDICTIVE_RISK. Install via `./install.sh --agent agents` (or Cursor/Claude skill install). Roadmap: [mcp-skill-roadmap.md](mcp-skill-roadmap.md).
 
 ---
 

@@ -1,0 +1,11 @@
+{
+  "id": "09_skill_tool_selection",
+  "category": "selection_accuracy",
+  "prompt": "Agent Skill guidance: which MCP tool after a security-sensitive authz change, and after applying a fix?",
+  "expected": {
+    "label": "EXPECTED_TOOL",
+    "after_security_sensitive_change": "axguard_security_review",
+    "after_fix": "axguard_verify_fix",
+    "avoid_tools": ["shell", "network", "browser"]
+  }
+}

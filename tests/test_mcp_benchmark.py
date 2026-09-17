@@ -94,3 +94,20 @@ def test_security_regression_scenarios_listed():
     assert "authorization_removed" in names
     assert "new_mcp_tool" in names
     assert case["expected"]["predictive_is_not_verified"] is True
+
+
+def test_fix_verification_fixture():
+    case = _load(FIXTURE / "cases" / "08_fix_verification" / "case.json")
+    assert case["expected"]["primary_tool"] == "axguard_verify_fix"
+    outcomes = set(case["expected"]["outcomes"])
+    assert outcomes >= {"RESOLVED", "STILL_PRESENT", "REGRESSED"}
+    pytest.importorskip("engines.mcp.tools.catalog")
+    from engines.mcp.tools.catalog import tool_names
+
+    assert "axguard_verify_fix" in tool_names()
+
+
+def test_skill_tool_selection_fixture():
+    case = _load(FIXTURE / "cases" / "09_skill_tool_selection" / "case.json")
+    assert case["expected"]["after_security_sensitive_change"] == "axguard_security_review"
+    assert case["expected"]["after_fix"] == "axguard_verify_fix"
