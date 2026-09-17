@@ -5,24 +5,6 @@
 # AXguard
 
 > **Open-source AI security tool to scan and fix vulnerabilities in your vibe-coded apps before you ship.**
->
-> **AXguard by [AwareXone](https://awarexone.com/)**
-
-### Built by [Shuvonsec](https://github.com/shuvonsec)
-
-AXguard is built by **[Shuvonsec](https://github.com/shuvonsec)** — Ethical hacker and security researcher. He ranked **#1 worldwide** on the TryHackMe monthly leaderboard in 2025. He works on AI security and cybersecurity agents, and builds open-source tools to make AI-built applications safer.
-
-<p align="center">
-  <a href="https://github.com/shuvonsec">
-    <img src="assets/shuvonsec-contributions.png" alt="Shuvonsec GitHub contributions — open-source security work across the year" width="100%"/>
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://github.com/shuvonsec"><img src="https://img.shields.io/badge/GitHub-shuvonsec-181717?style=flat-square&logo=github" alt="shuvonsec on GitHub"></a>
-  <a href="https://shuvonsec.com"><img src="https://img.shields.io/badge/Web-shuvonsec.com-3dd6c6?style=flat-square" alt="shuvonsec.com"></a>
-  <a href="https://awarexone.com/"><img src="https://img.shields.io/badge/AwareXone-awarexone.com-0c1117?style=flat-square" alt="AwareXone"></a>
-</p>
 
 [![MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
@@ -37,399 +19,182 @@ AXguard is built by **[Shuvonsec](https://github.com/shuvonsec)** — Ethical ha
 
 Pre-ship security gate — not a full pentest platform. Scan source, triage noise, fix what matters, and gate releases before you publish.
 
-[Website](https://awarexone.com/) · [GitHub](https://github.com/Awarexone) · [X](https://x.com/awarexone) · [Dev Docs](DEV.md) · [Commands](COMMANDS-QUICK-REF.md)
-
-**Contact:** [hello@awarexone.com](mailto:hello@awarexone.com) · [b2b@awarexone.com](mailto:b2b@awarexone.com) · [shuvon@awarexone.com](mailto:shuvon@awarexone.com)
+[Website](https://awarexone.com/) · [GitHub](https://github.com/Awarexone) · [Dev Docs](DEV.md) · [Commands](COMMANDS-QUICK-REF.md) · [Contributing](CONTRIBUTING.md)
 
 ---
 
-## Pre-Ship Security
-
-Find → Explain → Fix → Verify → Ship.
-
-```bash
-axguard preship .
-```
-
-AXGuard analyzes security-sensitive changes, verifies findings, checks attack paths and security regressions, and tells you whether the application is ready to ship.
-
-- Pre-Ship: [docs/preship.md](docs/preship.md)
-- Security Diff: [docs/security-diff.md](docs/security-diff.md)
-
----
-
-## What is AXguard?
-
-**AXguard is a pre-ship security gate.**
-
-Before you publish an app — especially one built with AI — AXguard checks your code for common security problems, helps you fix them, and writes clear reports.
-
-It ships as:
-
-* A **standalone CLI** (`axguard`)
-* An **AI agent plugin** (skills + slash commands for Claude Code, Cursor, OpenCode, Codex, and shared Agent Skills)
-* A **local-first MCP server** for AI coding agents (`axguard mcp` — `pip install -e '.[mcp]'`). See [docs/mcp.md](docs/mcp.md).
-* An optional **local-first Security Intelligence API** (`axguard api start` → `http://127.0.0.1:8787`) — no AwareXone account or hosted LLM; use **no-llm** (default), Ollama/local, or BYOK (`pip install -e '.[api]'`). See [docs/api/overview.md](docs/api/overview.md).
-
-```text
-AI builds it → AXguard checks it → You fix it → You ship it
-```
-
-Source scanning is current. Artifact/bytecode scanners (JS bundles, WASM, etc.) are planned — see [CONTRIBUTING.md](CONTRIBUTING.md).
-
----
-
-## AI Coding Agents
-
-AXGuard can run directly inside AI coding agents through MCP.
-
-Use AXGuard as the security layer for your coding agent.
-
-```text
-AI Agent
-   ↓
-AXGuard Agent Skill
-   ↓
-AXGuard MCP
-   ↓
-AXGuard Security Engine
-```
-
-Interfaces on the same engine:
-
-```text
-CLI
-API
-MCP
-Agent Skills
-GitHub
-```
-
-| Layer | Role |
-|---|---|
-| **CLI** | Human security interface |
-| **MCP** | AI-agent security interface (`axguard mcp`) |
-| **Agent Skill** | Teaches agents *when* to use AXGuard (`skills/axguard-security`) |
-
-Primary agent tool: `axguard_security_review`. After a fix: `axguard_verify_fix`. Install: `pip install -e '.[mcp]'` → `axguard mcp doctor` → configure your host ([docs/mcp-config.md](docs/mcp-config.md)). Overview: [docs/mcp.md](docs/mcp.md) · Tools: [docs/mcp-tools.md](docs/mcp-tools.md) · Security: [docs/mcp-security.md](docs/mcp-security.md) · Skill roadmap: [docs/mcp-skill-roadmap.md](docs/mcp-skill-roadmap.md).
-
----
-
-## Why AXguard?
+## What it is
 
 AI tools can build an app in minutes. They can also ship security bugs in minutes.
 
-AXguard sits between:
+AXguard reads your source before you publish it and tells you what an attacker would reach for. It runs as a plain CLI, as slash commands inside your coding agent, and as an MCP server your agent can call directly. Everything runs on your machine.
 
-```text
-"the AI built it"
-        ↓
-     AXguard
-        ↓
-"we shipped it"
-```
+It ships in four pieces:
 
-Built for developers, founders, security engineers, and teams that want a simple security checkpoint — without a heavy enterprise setup.
-
----
-
-## Workflow
-
-```text
-threat-model → audit → triage → fix → re-scan → report → CI
-```
-
-| Step | What happens |
+| Piece | What it is |
 |---|---|
-| **threat-model** | Map the app, trust boundaries, and likely risks before a deep pass. |
-| **audit** | Run the full pre-ship scan and write HTML / MD / JSON plus diagnostics. |
-| **triage** | Drop false positives; keep confirmed and likely issues. |
-| **fix** | Patch confirmed bugs with remediation guidance. |
-| **re-scan** | Re-run scan/audit to verify the fix held. |
-| **report** | Produce a shareable security report for PRs and stakeholders. |
-| **CI** | Fail the pipeline on high/critical so regressions do not ship. |
+| **CLI** | `axguard` — 22 commands, zero runtime dependencies, no account |
+| **Agent plugin** | 31 slash commands + 38 skills for Claude Code, Cursor, OpenCode, Codex |
+| **MCP server** | 31 tools your agent calls directly, approval-gated |
+| **Local API** | Optional FastAPI service on `127.0.0.1` for your own tooling |
+
+Detection is deterministic: **47 rules** across 16 JSON packs, plus five dedicated hunters for the classes that need dataflow rather than pattern matching. Everything after that — triage, verification, attack-path chaining, confidence scoring — is post-processing over those findings.
 
 ---
 
-## Quick Start
-
-### 1. Install the plugin
+## Quick start
 
 ```bash
 git clone https://github.com/Awarexone/AXguard.git
 cd AXguard
 
 chmod +x install.sh uninstall.sh
-./install.sh
+./install.sh                      # 1. agent skills + slash commands
+
+python3 -m venv .venv             # 2. the CLI
+source .venv/bin/activate
+pip install -e .
+
+axguard audit .                   # 3. scan this repo
+open .findings/axguard/axguard-report.html
 ```
 
-For Cursor:
+Four steps. Under two minutes on a warm machine.
+
+---
+
+## Install
+
+### 1. Agent plugin
 
 ```bash
-./install.sh --agent cursor
+./install.sh                            # Claude Code, globally (~/.claude)
+./install.sh --agent cursor             # Cursor
+./install.sh --agent all                # every supported agent
+./install.sh --agent claude --project   # this repo only (./.claude)
 ```
 
-For all supported agents:
+| `--agent` | Global destination | `--project` destination |
+|---|---|---|
+| `claude` *(default)* | `~/.claude` | `.claude` |
+| `cursor` | `~/.cursor` | `.cursor` |
+| `opencode` | `$OPENCODE_CONFIG_DIR` or `~/.config/opencode` | `.opencode` |
+| `codex` | `$CODEX_HOME` or `~/.codex` | `.codex` |
+| `agents` | `~/.agents` | `.agents` |
+| `all` | all of the above | all of the above |
 
-```bash
-./install.sh --agent all
-```
+`--global` is the default. The `agents` target installs skills only — shared Agent Skills have no slash-command concept.
 
-Supported install targets (`./install.sh --agent …`): **claude**, **cursor**, **opencode**, **codex**, **agents** (shared Agent Skills), and **all**.
+### 2. CLI
 
-### 2. Install the CLI
+Requires **Python 3.10+**. No other runtime dependencies.
 
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate
-
+source .venv/bin/activate         # Windows: .venv\Scripts\activate
 pip install -e .
-
-axguard help
-axguard audit .
 ```
 
-Open the report:
+Optional extras:
 
 ```bash
-open .findings/axguard/axguard-report.html
+pip install -e ".[mcp]"           # MCP server for AI agents
+pip install -e ".[api]"           # local Security Intelligence API
+pip install -e ".[dev]"           # pytest, for contributing
 ```
 
-| | |
-|---|---|
-| Package | `axguard` |
-| Version | `0.2.0` |
-| Python | `3.10+` |
-| License | MIT |
-
----
-
-## Start Using AXguard
-
-> **Start with the workflow you need, not the full list.**
-
-| What are you doing? | Start here |
-|---|---|
-| About to ship | `/axguard-audit` |
-| Quick check while coding | `/axguard-scan` |
-| New or unknown codebase | `/axguard-threat-model` |
-| Map attack surface / app model | `/axguard-surface` |
-| Dataflow / taint paths | `/axguard-flow` |
-| Hunter → Judge verification | `/axguard-verify` |
-| False-positive adversary | `/axguard-adversary` |
-| Evidence & confidence | `/axguard-evidence` |
-| Attack graph / vuln chaining | `/axguard-paths` |
-| AI-generated / agent app | `/axguard-agent` |
-| Looking for leaked keys | `/axguard-secrets` |
-| Auth / IDOR issues | `/axguard-auth` |
-| Injection / RCE | `/axguard-inject` |
-| SQL injection | `/axguard-sql` |
-| SSTI | `/axguard-ssti` |
-| Path traversal / LFI | `/axguard-path` |
-| SSRF | `/axguard-ssrf` |
-| XSS | `/axguard-xss` |
-| Cloud / CORS | `/axguard-cloud` |
-| Crypto misuse | `/axguard-crypto` |
-| Supply chain | `/axguard-supply` |
-| GraphQL | `/axguard-graphql` |
-| File upload | `/axguard-upload` |
-| Debug / error leaks | `/axguard-debug` |
-| Too many findings | `/axguard-triage` |
-| Fix confirmed bugs | `/axguard-fix` |
-| Need a report | `/axguard-report` |
-| Add a CI gate | `/axguard-ci` |
-| Training-data pipeline | `/axguard-data` |
-| Contribute (local, opt-in) | `/axguard-contribute` |
-| Privacy prefs (local) | `/axguard-privacy` |
-| Security Twin | `axguard twin build .` → [docs/twin](docs/twin/README.md) |
-| Security Memory | `axguard memory record .` → [docs/memory](docs/memory/README.md) |
-| Investigation Agent | `axguard investigate .` → [docs/investigation](docs/investigation/README.md) |
-| Predictive security risk | `axguard predict .` → [docs/predictive](docs/predictive/README.md) |
-| Security Diff | `axguard diff` → [docs/security-diff.md](docs/security-diff.md) |
-| Pre-Ship gate | `axguard preship .` → [docs/preship.md](docs/preship.md) |
-| Local Security Intelligence API | `axguard api start` → [docs/api](docs/api/overview.md) |
-| MCP for AI coding agents | `axguard mcp` → [docs/mcp.md](docs/mcp.md) |
-| GitHub PR bot (self-host) | `axguard github setup` → [docs/github](docs/github/README.md) |
-| Full security-lead pass | skill `axguard-cso` |
-| Short pre-ship checklist | skill `axguard-preship` |
-
-See the [command cheat sheet](COMMANDS-QUICK-REF.md).
-
----
-
-## Commands & Specialists
-
-Each command has a clear job. Slash commands install via `./install.sh`; most also have a CLI equivalent.
-
-| Command | Specialist | Key CLI | What it does |
-|---|---|---|---|
-| `/axguard-audit` | Pre-ship Lead | `axguard audit .` | Full audit + HTML / MD / JSON (+ diagnostics) |
-| `/axguard-scan` | Scanner | `axguard scan .` | Fast check while you code |
-| `/axguard-threat-model` | CSO | — | Map risks before a deep scan |
-| `/axguard-surface` | Surface Mapper | `axguard surface .` | Application model (routes, sinks, stack) |
-| `/axguard-flow` | Dataflow | `axguard flow .` | Dataflow / taint paths (diagnostic) |
-| `/axguard-verify` | Verifier | `axguard verify .` | Hunter → Judge verification (diagnostic) |
-| `/axguard-adversary` | FP Adversary | `axguard adversary .` | False-positive adversary (diagnostic) |
-| `/axguard-evidence` | Evidence | `axguard evidence .` | Evidence & confidence (diagnostic) |
-| `/axguard-paths` | Attack Graph | `axguard paths .` | Attack graph + vuln chaining (diagnostic) |
-| `/axguard-secrets` | Secrets Hunter | — | Find keys and credentials |
-| `/axguard-auth` | Access Control | — | Auth, IDOR, JWT, CSRF |
-| `/axguard-inject` | Injection Hunter | — | Injection and RCE patterns |
-| `/axguard-sql` | SQL Hunter | — | SQL / ORM injection sinks |
-| `/axguard-ssti` | Template Hunter | — | Server-side template injection |
-| `/axguard-path` | Path Hunter | — | Traversal / LFI / dynamic includes |
-| `/axguard-ssrf` | Egress Hunter | — | Unsafe outbound requests |
-| `/axguard-xss` | Client Security | — | Dangerous XSS sinks |
-| `/axguard-cloud` | Cloud Reviewer | — | Cloud and CORS issues |
-| `/axguard-crypto` | Crypto Reviewer | — | Weak hashing, hard-coded keys, TLS verify-off |
-| `/axguard-supply` | Supply Chain | — | Install hooks, curl\|sh, untrusted indexes |
-| `/axguard-graphql` | GraphQL Reviewer | — | Introspection / CSRF footguns |
-| `/axguard-upload` | Upload Hunter | — | Unsafe file upload patterns |
-| `/axguard-debug` | Debug Hunter | — | DEBUG mode, stack traces, actuators |
-| `/axguard-agent` | Agent Security | — | AI-agent and LLM risks |
-| `/axguard-triage` | Triage Lead | — | Cut noise, keep real issues |
-| `/axguard-fix` | Remediation | — | Fix and re-check |
-| `/axguard-report` | Report Author | — | Clean security reports |
-| `/axguard-ci` | Release Gate | `axguard audit . --fail-on high` | Fail CI on high / critical |
-| `/axguard-data` | Data Pipeline | `axguard data …` | Training-data registry & pipeline |
-| `/axguard-contribute` | Contributor | `axguard contribute …` | Local contribution suggest/prepare (no auto-push) |
-| `/axguard-privacy` | Privacy | `axguard privacy …` | Local opt-in / export / delete prefs |
-| skill `axguard-cso` | Chief Security Officer | — | End-to-end security pass |
-| skill `axguard-preship` | Release Reviewer | — | Short pre-ship checklist |
-
----
-
-## Which workflow?
-
-| Situation | Start with | Then |
-|---|---|---|
-| Shipping soon | `/axguard-audit` | `/axguard-triage` → `/axguard-fix` → re-scan |
-| AI-built app | `/axguard-agent` | `/axguard-audit` |
-| Auth-heavy API | `/axguard-auth` | `/axguard-audit` |
-| New codebase | `/axguard-threat-model` | `/axguard-surface` → `/axguard-audit` |
-| Noisy results | `/axguard-triage` or `/axguard-adversary` | `/axguard-fix` |
-| Need a shareable report | `/axguard-report` | Open the HTML |
-| Want CI protection | `/axguard-ci` | Add it to your pipeline |
-
----
-
-## CLI
-
-**No AI agent required.**
+### 3. Verify it worked
 
 ```bash
-axguard help
-axguard version
-axguard about
-axguard engage disable|enable|dismiss
-
-# Scan & audit
-axguard scan .
-axguard scan . --format json -o out.json
-axguard audit .
-axguard audit . --fail-on high
-axguard audit . --fail-on high --out-dir .findings/axguard --no-banner
-axguard audit . --open-summary
-
-# Diagnostics (not vuln reports)
-axguard surface .
-axguard flow .
-axguard verify .
-axguard adversary .
-axguard evidence .
-axguard paths .              # alias: axguard attack-paths .
-axguard paths . --current --critical --shortest
-axguard paths . --predictive
-axguard paths . --what-if remove_authz
-
-# Security Twin (symbolic model; local)
-axguard twin build .
-axguard twin show .
-axguard twin attack .
-axguard twin blast-radius . --entity ENTITY
-axguard twin controls .
-axguard twin what-if .
-axguard twin compare .
-axguard twin regression .
-axguard twin query .
-axguard twin scenarios
-axguard twin export-dataset .
-
-# Security Memory (longitudinal; local)
-axguard memory record .
-axguard memory show
-axguard memory history
-axguard memory changes
-axguard memory regressions
-axguard memory findings
-axguard memory controls
-axguard memory paths
-axguard memory unknowns
-axguard memory query "what changed"
-
-# Investigation Agent
-axguard investigate .
-axguard investigate . --fast
-axguard investigate . --deep
-axguard investigate . --finding FINDING_ID
-axguard investigate --explain FINDING_ID
-
-# Predictive security (risk signals — not confirmed findings)
-axguard predict .
-axguard predict --pr --base ./base-checkout
-axguard predict --architecture
-axguard predict --agent
-axguard predict --mcp
-axguard predict --what-if
-
-# Security Diff (security-aware comparison of two versions)
-axguard diff
-axguard diff HEAD~1
-axguard diff main...HEAD
-axguard diff --base main --head HEAD
-axguard diff --json
-axguard diff --verbose
-axguard diff --fail-on high
-axguard diff baseline save
-
-# Training-data pipeline (no model training)
-axguard data discover
-axguard data inspect
-axguard data report fixtures/data_pipeline
-
-# Contribute / privacy (local prefs; no telemetry by default)
-axguard privacy status
-axguard privacy opt-in
-axguard privacy opt-out
-axguard privacy export
-axguard contribute status
-axguard contribute suggest
-axguard contribute prepare
-
-# Optional GitHub Security Bot adapter
-axguard github setup .
-axguard github validate .
-axguard github test .
-axguard github status .
-
-# Local Security Intelligence API (optional extra: pip install -e '.[api]')
-axguard api start
-axguard api status
-axguard api projects
-axguard api keys list
-
-open .findings/axguard/axguard-report.html
+axguard version                   # axguard 0.2.0
+axguard help                      # the workflow table
+axguard scan fixtures/vuln_app    # 28 findings in the bundled vulnerable app
 ```
 
-Common flags on scan/audit: `--fail-on {critical,high,medium,low,none}`, `--rules DIR`, `--no-banner`, `--no-engage`. Audit also accepts `--out-dir` and `--open-summary`. Scan also accepts `--format {text,json,md,html}` and `-o` / `--output`.
+If the last command prints findings, both halves are working.
 
-Docs: [docs/twin](docs/twin/README.md) · [docs/memory](docs/memory/README.md) · [docs/investigation](docs/investigation/README.md) · [docs/predictive](docs/predictive/README.md) · [docs/api](docs/api/overview.md) · [docs/github](docs/github/README.md) · [docs/contributors](docs/contributors/README.md) · [docs/engagement.md](docs/engagement.md)
+---
+
+## See it work
+
+Against `fixtures/vuln_app`, the deliberately vulnerable app bundled with this repo:
+
+```console
+$ axguard scan fixtures/vuln_app --no-banner
+AXguard scan — /path/to/AXguard/fixtures/vuln_app
+Findings: 28
+
+[CRITICAL] injection.python-pickle-loads — pickle.loads deserialization
+  app.py:11
+  return pickle.loads(blob)
+  pickle.loads on untrusted data enables arbitrary object construction and RCE.
+  Fix: Use json/msgpack for untrusted payloads; never unpickle attacker input.
+
+[CRITICAL] sql.python-format-query — SQL built with string formatting
+  app.py:29
+  return cursor.execute(f"SELECT * FROM users WHERE id = {user_id}")
+  Dynamic SQL via f-strings/format/concat is a classic SQLi sink.
+  Fix: Use parameterized queries / bind variables only.
+
+[CRITICAL] ssti.jinja-render-string — Jinja2 template string from variable
+  app.py:33
+  return render_template_string(user_tpl)
+  Rendering attacker-influenced templates enables SSTI → RCE.
+  Fix: Never render user-controlled template source; use fixed templates + autoescape.
+
+[MEDIUM] crypto.math-random-token — Math.random used for security token
+  client.js:25
+  export const token = "sess-" + Math.random().toString(36);
+  Math.random is not cryptographically secure.
+  Fix: Use crypto.randomBytes / crypto.getRandomValues.
+```
+
+Every finding carries a rule id, a severity, the exact line, the reason it matters, and the fix.
+
+A full audit runs the diagnostic chain on top and writes the reports:
+
+```console
+$ axguard audit fixtures/vuln_app --no-banner
+audit complete — 28 finding(s)
+  json  .findings/axguard/axguard-report.json
+  md    .findings/axguard/axguard-report.md
+  html  .findings/axguard/axguard-report.html
+  model .findings/axguard/application-model.json
+  flow  .findings/axguard/dataflow.json
+  verify counts: candidates=12 VERIFIED=0 LIKELY=0 UNVERIFIED=12 FALSE_POSITIVE=0
+  adversary counts: findings=12 CONFIRMED=0 LIKELY=0 UNVERIFIED=12 FALSE_POSITIVE=0
+  evidence counts: findings=12 unique=51 reused=27 conflicts=0 UNKNOWN=12
+  paths counts: paths=1 CONFIRMED=0 LIKELY=0 UNVERIFIED=1 BLOCKED=0 dead_ends=11
+```
+
+The generated Markdown report opens with the severity breakdown:
+
+```markdown
+# AXguard Audit Report
+
+**Findings:** 28
+**Mode:** audit
+
+> **Analysis mode: READ-ONLY.** No source files were modified and no external
+> requests were made.
+
+## Severity summary
+
+| Severity | Count |
+|---|---:|
+| critical | 7 |
+| high | 14 |
+| medium | 6 |
+| low | 1 |
+```
+
+Note what the diagnostic counters say: `VERIFIED=0 UNVERIFIED=12`. AXguard reports what it can support with evidence and refuses to claim more. Verification status is information, not decoration.
 
 ---
 
 ## What it finds
 
-Detections come from `rules/*.json` (deterministic pattern/heuristic rules).
+Detections come from `rules/*.json` — deterministic pattern and heuristic rules.
 
 | Area | Examples (from shipped rules) |
 |---|---|
@@ -449,11 +214,103 @@ Detections come from `rules/*.json` (deterministic pattern/heuristic rules).
 | **Cloud** | AWS metadata URLs, wildcard CORS + credentials, public S3 ACL |
 | **AI agents** | Executing model/agent output, unrestricted shell tools, prompt/tool-arg shell execution |
 
+Adding a rule means dropping a JSON file into `rules/` — see [docs/adding-rules.md](docs/adding-rules.md). Point at your own pack with `--rules DIR`.
+
+## Supported languages
+
+Rule coverage is deepest where AI code generation is most common.
+
+| Tier | Languages |
+|---|---|
+| **Primary** | Python, JavaScript / TypeScript (including JSX, TSX, ESM, CJS) |
+| **Secondary** | PHP, Java, Ruby, Go, Rust, Vue |
+| **Config & IaC** | `.env`, YAML, JSON, Terraform / HCL, HTML |
+
+Around 45 file extensions are read in total. Rules declare which languages they apply to, so a Python rule never fires on a `.js` file.
+
+---
+
+## Commands
+
+Every slash command maps to a CLI command. Use whichever fits what you are doing.
+
+### Core workflow
+
+| Slash command | CLI | What it does |
+|---|---|---|
+| `/axguard-audit` | `axguard audit .` | Full A→Z audit. Writes JSON + Markdown + HTML |
+| `/axguard-scan` | `axguard scan .` | Fast pass while coding. No report suite |
+| `/axguard-triage` | — | Kill false positives, promote real bugs |
+| `/axguard-fix` | — | Patch confirmed findings |
+| `/axguard-report` | — | Regenerate or tighten the reports |
+| `/axguard-ci` | `axguard audit . --fail-on high` | Wire up a release gate |
+| `/axguard-threat-model` | — | STRIDE-lite pass on an unfamiliar codebase |
+
+### Diagnostics
+
+These explain *why* a finding is or is not real. They are not vulnerability reports, and they always exit `0` — they cannot gate CI.
+
+| Slash command | CLI | What it does |
+|---|---|---|
+| `/axguard-surface` | `axguard surface .` | Routes, sinks, stack, AI components |
+| `/axguard-flow` | `axguard flow .` | Taint and dataflow paths |
+| `/axguard-verify` | `axguard verify .` | Hunter → Judge verification |
+| `/axguard-adversary` | `axguard adversary .` | Argues against your findings |
+| `/axguard-evidence` | `axguard evidence .` | Evidence chains and confidence |
+| `/axguard-paths` | `axguard paths .` | Attack graph and vulnerability chaining |
+
+### By vulnerability class
+
+`/axguard-secrets` · `/axguard-auth` · `/axguard-inject` · `/axguard-sql` · `/axguard-ssti` · `/axguard-path` · `/axguard-ssrf` · `/axguard-xss` · `/axguard-upload` · `/axguard-crypto` · `/axguard-supply` · `/axguard-graphql` · `/axguard-cloud` · `/axguard-debug` · `/axguard-agent`
+
+### Deeper analysis
+
+| CLI | What it does |
+|---|---|
+| `axguard twin build .` | Symbolic security model — blast radius, counterfactuals, regression → [docs](docs/twin/README.md) |
+| `axguard memory record .` | Longitudinal history — what changed, what regressed → [docs](docs/memory/README.md) |
+| `axguard investigate .` | Evidence-driven investigation loop → [docs](docs/investigation/README.md) |
+| `axguard predict .` | Risk signals from observable change — not confirmed findings → [docs](docs/predictive/README.md) |
+
+### Local and operational
+
+| Slash command | CLI | What it does |
+|---|---|---|
+| `/axguard-data` | `axguard data discover` | Training-data registry and license gate. No model training |
+| `/axguard-contribute` | `axguard contribute suggest` | Prepare a contribution locally. Never auto-pushes |
+| `/axguard-privacy` | `axguard privacy status` | Local privacy preferences |
+| — | `axguard mcp serve` | MCP server for AI agents |
+| — | `axguard api start` | Local Security Intelligence API |
+| — | `axguard github setup .` | GitHub Security Bot adapter config |
+
+Full cheat sheet: [COMMANDS-QUICK-REF.md](COMMANDS-QUICK-REF.md).
+
+### Flags worth knowing
+
+`--fail-on {critical,high,medium,low,none}` — exit `1` when a finding meets the threshold. **Available on `scan` and `audit` only.**
+
+`--rules DIR` — use your own rule pack. `--no-banner`, `--no-engage` — quiet output, for CI.
+
+`--format {text,json,md,html}` with `-o FILE` — **`scan` only**. `audit` always writes all three formats.
+
+## Which workflow?
+
+| Situation | Start here |
+|---|---|
+| About to ship | `/axguard-audit` |
+| Quick check while coding | `/axguard-scan` |
+| New or unknown codebase | `/axguard-threat-model` then `/axguard-surface` |
+| Too many findings | `/axguard-triage` |
+| Findings confirmed, need patches | `/axguard-fix` |
+| Want a security-lead pass | skill `axguard-cso` |
+| Short release checklist | skill `axguard-preship` |
+| Blocking bad merges | `/axguard-ci` |
+
 ---
 
 ## Reports
 
-Every full audit writes **primary** vulnerability reports:
+Every full audit writes the primary vulnerability reports:
 
 ```text
 .findings/axguard/
@@ -462,7 +319,7 @@ Every full audit writes **primary** vulnerability reports:
 └── axguard-report.json   # for CI and tools
 ```
 
-The same audit also writes **diagnostic** artifacts (not the primary vuln report):
+Plus diagnostic artifacts, which explain the findings rather than adding to them:
 
 ```text
 .findings/axguard/
@@ -470,18 +327,20 @@ The same audit also writes **diagnostic** artifacts (not the primary vuln report
 ├── dataflow.{json,md}            # taint / dataflow paths
 ├── verification.{json,md}        # Hunter → Judge
 ├── adversary.{json,md}           # false-positive adversary
-├── final-findings.json           # post-adversary finding statuses
+├── final-findings.json           # post-adversary statuses
 ├── evidence.{json,md}            # evidence & confidence
 ├── attack-paths.{json,md}        # attack graph / chaining
-├── memory/                       # soft Security Memory snapshot (best-effort)
-└── investigation/                # soft Investigation Agent pass (best-effort)
+├── memory/                       # Security Memory snapshot (best-effort)
+└── investigation/                # Investigation Agent pass (best-effort)
 ```
 
-A full audit may also embed a twin **summary** in the main report; full `security-twin.*` files come from `axguard twin …` (default under `.findings/axguard/twin/`). Dedicated commands can write more under `predictive/`, `data/`, and `contribute/`.
+The diagnostic stages are deliberately best-effort: if one fails, the audit records the error and continues rather than losing the whole run. A completed audit with a missing diagnostic section is a stage that did not finish, not a clean result.
+
+The HTML report is interactive and approval-gated. High-risk actions — applying a fix, active verification, external sharing — are never executed by the report.
 
 ---
 
-## CI / Release Gate
+## CI / release gate
 
 ```text
 Code → AXguard → High/Critical?
@@ -489,119 +348,211 @@ Code → AXguard → High/Critical?
                  └── No  → Ship
 ```
 
-Example for your app:
-
 ```bash
 axguard audit . --fail-on high --no-banner
 ```
 
+Exit `1` when anything at or above the threshold is found, exit `0` otherwise.
+
 ### What this repository runs
 
-[`.github/workflows/axguard.yml`](.github/workflows/axguard.yml) dogfoods **runtime code only** (`engines/` and `cli/`). Fixtures, skills, commands, and rules intentionally contain vulnerable examples for regression tests and are excluded:
+[`.github/workflows/axguard.yml`](.github/workflows/axguard.yml) dogfoods **runtime code only** (`engines/` and `cli/`). Fixtures, skills, commands and rules contain deliberately vulnerable examples for regression tests, and are excluded:
 
 ```bash
 axguard audit engines --fail-on high --no-banner
 axguard audit cli --fail-on high --no-banner
 ```
+
+To make it a required status check, see [docs/github/required-checks.md](docs/github/required-checks.md).
+
+---
+
+## AI agent integration
+
+AXguard is built to be called by coding agents, not just by you.
+
+| Layer | How the agent uses it |
+|---|---|
+| **Slash commands** | 31 commands — `/axguard-audit`, `/axguard-triage`, … |
+| **Skills** | 38 skills: 8 orchestration + 30 security domain skills |
+| **MCP** | 31 typed tools the agent calls directly |
+
+The three tools an agent reaches for first are `axguard_security_review`, `axguard_investigate` and `axguard_verify_fix`.
+
+```bash
+pip install -e ".[mcp]"
+axguard mcp doctor          # check the host connection
+axguard mcp tools           # list the 31 tools
+axguard mcp serve           # stdio MCP server
+```
+
+Six tools are approval-gated (`axguard_audit`, `axguard_verify_finding`, `axguard_verify_fix`, `axguard_what_if`, `axguard_investigate`, and `axguard_security_review` in DEEP/MAX mode). Unknown tools default to requiring approval.
+
+Setup: [docs/mcp.md](docs/mcp.md) · [config](docs/mcp-config.md) · [tools](docs/mcp-tools.md) · [security](docs/mcp-security.md) · [threat model](docs/mcp-threat-model.md)
 
 ---
 
 ## GitHub Security Bot
 
-Optional GitHub App that reviews pull requests with Check Runs and one updatable summary comment. Runs AXGuard Core behind a thin webhook adapter (`engines/github/`). Local CLI scanning does **not** require it.
-
-### Add the bot to a repository
-
-**A. GitHub App (Check Runs + PR comment)** — preferred when you can self-host:
-
-1. Create a GitHub App with the permissions in [docs/github/permissions.md](docs/github/permissions.md).
-2. Install it on **Only select repositories** (e.g. this repo).
-3. Point the webhook at your adapter and export credentials (never commit them):
+Optional GitHub App that reviews pull requests with Check Runs and one updatable summary comment. It runs AXguard behind a thin webhook adapter (`engines/github/`). Local CLI scanning does not require it.
 
 ```bash
 export AXGUARD_GITHUB_APP_ID=…
 export AXGUARD_GITHUB_WEBHOOK_SECRET=…
 export AXGUARD_GITHUB_PRIVATE_KEY_PATH=/path/to/app.pem
-```
 
-4. In the target repo:
-
-```bash
-axguard github setup .          # writes .axguard.yml (no secrets)
+axguard github setup .        # writes .axguard.yml (never secrets)
 axguard github validate .
-# run the adapter — see docs/github/self-hosting.md
+axguard github test .         # webhook HMAC self-check
 axguard github status .
 ```
 
-**B. Actions-only (no webhook host)** — what this repository uses in CI:
+The CLI configures and validates the adapter; it does not run the webhook listener. Serving it is a self-hosting step — see [docs/github/self-hosting.md](docs/github/self-hosting.md).
 
-```bash
-# .github/workflows/axguard.yml on pull_request / push to main:
-axguard audit engines --fail-on high --no-banner
-axguard audit cli --fail-on high --no-banner
-```
+If you have no webhook host, the Actions-only path in the CI section above gives you the gate without the App.
 
-That path runs Core in CI; it does not replace App Check Runs unless you also wire the App.
-
-### CLI
-
-```bash
-axguard github setup .
-axguard github validate .
-axguard github test .
-axguard github status .
-```
-
-- Install & permissions: [docs/github/install.md](docs/github/install.md) · [docs/github/permissions.md](docs/github/permissions.md)
-- Config (`.axguard.yml`): [docs/github/config.md](docs/github/config.md)
-- Self-host (preferred): [docs/github/self-hosting.md](docs/github/self-hosting.md)
-- Privacy / AI: [docs/github/privacy.md](docs/github/privacy.md) · [docs/github/ai-providers.md](docs/github/ai-providers.md)
-- Architecture research: [docs/research/github-security-bot.md](docs/research/github-security-bot.md)
-- Marketplace prep only (no approval claimed): [docs/github/marketplace.md](docs/github/marketplace.md)
+Install & permissions: [install](docs/github/install.md) · [permissions](docs/github/permissions.md) · [config](docs/github/config.md) · [PR output](docs/github/pr-ux.md) · [security](docs/github/security.md) · [privacy](docs/github/privacy.md) · [AI providers](docs/github/ai-providers.md) · [troubleshooting](docs/github/troubleshooting.md) · [uninstall](docs/github/uninstall.md)
 
 ---
 
-## Predictive Security
+## Privacy
 
-Predict **security risk expansion** from observable changes — not CVEs, not guaranteed future bugs. Separates Verified Issues from Predictive Risks.
+**AXguard sends nothing anywhere by default.**
+
+- No telemetry, no analytics, no phone-home.
+- No AwareXone account. No hosted service.
+- No LLM calls in the analysis path. The default AI provider is `none` / `no-llm`.
+- Findings, reports and history stay in `.findings/` in your repo; preferences stay in `~/.axguard/`.
+
+The only outbound request anywhere in the non-optional code is to the GitHub API, and only if you configure the GitHub bot. The optional local API binds `127.0.0.1` and is yours.
+
+Contribution packaging is opt-in, local, and never auto-pushes:
 
 ```bash
-axguard predict .
-axguard predict --pr --base ./base-checkout
-axguard predict --architecture
-axguard predict --agent
-axguard predict --mcp
-axguard predict --what-if
+axguard privacy status
+axguard privacy opt-in
+axguard contribute prepare
 ```
 
-- Guide: [docs/predictive/README.md](docs/predictive/README.md)
-- Research: [docs/research/predictive-security.md](docs/research/predictive-security.md)
+Details: [docs/contributors](docs/contributors/README.md) · [docs/github/privacy.md](docs/github/privacy.md)
 
 ---
 
-## Built for vibe-coded apps
+## Troubleshooting
 
-AI can generate an app quickly. Security review should still happen before you publish.
+**`axguard: command not found`** — the venv is not active. Run `source .venv/bin/activate` (Windows: `.venv\Scripts\activate`). Confirm with `which axguard`.
+
+**Slash commands do not appear in your agent** — re-run `./install.sh --agent <name>` and restart the agent. Skills load at startup.
+
+**Zero findings on a real project** — check you are scanning source, not a build directory. Confirm the toolchain works with `axguard scan fixtures/vuln_app`, which should report 28 findings.
+
+**Too many findings** — that is what triage is for. Run `/axguard-triage`, or `axguard adversary .` to have AXguard argue against its own output.
+
+**MCP tools missing in your agent** — the MCP extra is not installed. Run `pip install -e ".[mcp]"`, then `axguard mcp doctor` for a connection report. The `mcp` command is hidden entirely when the dependency is absent.
+
+**An audit finished but a diagnostic section is empty** — that stage failed and the audit continued by design. Run the stage directly (`axguard flow .`, `axguard verify .`) to see the error.
+
+---
+
+## Uninstall
+
+```bash
+./uninstall.sh                          # Claude Code, global
+./uninstall.sh --agent cursor
+./uninstall.sh --agent all
+./uninstall.sh --agent claude --project
+```
+
+Same `--agent` and `--global` / `--project` options as `install.sh`. To remove the CLI, delete the virtualenv, or `pip uninstall axguard`.
+
+---
+
+## Project structure
 
 ```text
-AI builds it
-     ↓
-AXguard checks it
-     ↓
-You fix it
-     ↓
-AXguard checks again
-     ↓
-You ship it
+AXguard/
+├── cli/                 # axguard CLI entrypoint
+├── engines/             # scanners, diagnostics, adapters
+├── rules/               # detection rule packs (*.json)
+├── skills/              # agent skills (8 orchestration + 30 security)
+├── commands/            # 31 slash commands
+├── fixtures/            # deliberately vulnerable test apps
+├── tests/               # 438 tests
+├── scripts/             # skill validation
+└── docs/                # developer and feature documentation
 ```
 
-Use `/axguard-agent` when the app gives models access to shells, files, APIs, or tools.
+## Docs
+
+| Area | Docs |
+|---|---|
+| **Architecture** | [architecture](docs/architecture.md) · [plugin](docs/plugin.md) · [adding rules](docs/adding-rules.md) |
+| **MCP** | [overview](docs/mcp.md) · [config](docs/mcp-config.md) · [tools](docs/mcp-tools.md) · [security](docs/mcp-security.md) · [threat model](docs/mcp-threat-model.md) · [benchmark](docs/mcp-benchmark.md) · [research](docs/mcp-research.md) |
+| **Features** | [attack graph](docs/attack-graph.md) · [twin](docs/twin/README.md) · [memory](docs/memory/README.md) · [investigation](docs/investigation/README.md) · [predictive](docs/predictive/README.md) |
+| **API** | [overview](docs/api/overview.md) · [quickstart](docs/api/quickstart.md) · [auth](docs/api/authentication.md) · [providers](docs/api/providers.md) · [security](docs/api/security.md) |
+| **GitHub bot** | [overview](docs/github/README.md) · [install](docs/github/install.md) · [config](docs/github/config.md) · [self-hosting](docs/github/self-hosting.md) · [required checks](docs/github/required-checks.md) · [troubleshooting](docs/github/troubleshooting.md) |
+| **Skills** | [schema](docs/SKILL-SCHEMA.md) · [knowledge inventory](docs/SECURITY-KNOWLEDGE-INVENTORY.md) |
+| **Research** | [investigation agent](docs/research/investigation-agent.md) · [security memory](docs/research/security-memory.md) · [security twin](docs/research/security-twin.md) · [GitHub bot](docs/research/github-security-bot.md) · [predictive](docs/research/predictive-security.md) |
+| **Data pipeline** | [overview](docs/data/README.md) · [AI security corpus](docs/data/research/ai-security-corpus.md) · [false-positive corpus](docs/data/research/false-positive-corpus.md) · [license gate](docs/data/research/license-gate.md) |
+| **Contributors** | [engagement](docs/engagement.md) · [contributor tooling](docs/contributors/README.md) |
+
+Developer setup lives in [DEV.md](DEV.md).
 
 ---
 
-## AwareXone
+## Contributing
 
-AXguard is built by **[AwareXone](https://awarexone.com/)**.
+Contributions are welcome — detection rules, scanners, test fixtures, agent skills, reports, documentation, bug fixes.
+
+```bash
+pip install -e ".[dev]"
+pytest -q
+python scripts/validate_skills.py
+axguard audit fixtures/vuln_app --no-banner
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Artifact and bytecode scanners are on the roadmap there — not claimed as current features.
+
+## Responsible use
+
+AXguard is for **authorized security testing and defense**.
+
+Only scan systems, applications, repositories, and infrastructure that you own or have permission to test.
+
+## Support
+
+AXguard is free and open source.
+
+If it helps you build safer software, a **star on GitHub** helps more builders find it. You can also support the project directly and help fund more open-source security tools.
+
+**Website:** [awarexone.com](https://awarexone.com/)  
+**Email:** [hello@awarexone.com](mailto:hello@awarexone.com) · [b2b@awarexone.com](mailto:b2b@awarexone.com) · [shuvon@awarexone.com](mailto:shuvon@awarexone.com)  
+**Buy Me a Coffee:** [buymeacoffee.com/shuvonsec](https://www.buymeacoffee.com/shuvonsec)
+
+| | |
+|---|---|
+| **Bitcoin** | `1GXwGqmLcnbZWgVNskUAZyw2cmqenkUFNY` |
+| **Solana** | `4ArkPu1E7tkrt3d5X84grWzF1xjuLpScgGEy12Bp2cmE` |
+
+---
+
+## Credits
+
+AXguard is built by **[Shuvonsec](https://github.com/shuvonsec)** — ethical hacker and security researcher, ranked **#1 worldwide** on the TryHackMe monthly leaderboard in 2025. He works on AI security and cybersecurity agents, and builds open-source tools to make AI-built applications safer.
+
+<p align="center">
+  <a href="https://github.com/shuvonsec">
+    <img src="assets/shuvonsec-contributions.png" alt="Shuvonsec GitHub contributions — open-source security work across the year" width="100%"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/shuvonsec"><img src="https://img.shields.io/badge/GitHub-shuvonsec-181717?style=flat-square&logo=github" alt="shuvonsec on GitHub"></a>
+  <a href="https://shuvonsec.com"><img src="https://img.shields.io/badge/Web-shuvonsec.com-3dd6c6?style=flat-square" alt="shuvonsec.com"></a>
+  <a href="https://awarexone.com/"><img src="https://img.shields.io/badge/AwareXone-awarexone.com-0c1117?style=flat-square" alt="AwareXone"></a>
+</p>
+
+### AwareXone
 
 We build open-source security tools for the AI era — for people who **build** and people who **hunt**.
 
@@ -615,196 +566,21 @@ Secure what you create   Find bugs that are live
 
 > **Same security DNA. Different job.**
 
-### Agentic Bug Hunter
-
 <p align="center">
   <a href="https://github.com/Awarexone/Agentic-Bug-Hunter">
     <img src="assets/agentic-bug-hunter-banner.jpg" alt="Agentic Bug Hunter by AwareXone — AI-powered bug bounty hunting toolkit" width="100%"/>
   </a>
 </p>
 
-**AI-powered bug bounty toolkit** ([4.8k+ stars](https://github.com/Awarexone/Agentic-Bug-Hunter)).
-
-Point it at a live target. It helps you recon, find vulnerabilities, validate findings, and write reports. Claude Code plugin + standalone `bughunter` CLI.
-
-→ [github.com/Awarexone/Agentic-Bug-Hunter](https://github.com/Awarexone/Agentic-Bug-Hunter)
-
-### More from AwareXone
-
 | Tool | What it is |
 |---|---|
-| [**Agentic Bug Hunter**](https://github.com/Awarexone/Agentic-Bug-Hunter) | AI bug bounty toolkit |
+| [**Agentic Bug Hunter**](https://github.com/Awarexone/Agentic-Bug-Hunter) | AI bug bounty toolkit — recon, find, validate, report |
 | [**Public Skills Builder**](https://github.com/Awarexone/public-skills-builder) | Turn public security research into reusable skills |
 | [**Web3 Bug Bounty AI Skills**](https://github.com/Awarexone/web3-bug-bounty-hunting-ai-skills) | Smart-contract and DeFi security skills |
 
+Beyond open-source tools, AwareXone builds AI-driven defenses against scams, fraud and social engineering, and provides human-risk security services for organizations.
+
 [awarexone.com](https://awarexone.com/) · [GitHub](https://github.com/Awarexone) · [X @AwareXone](https://x.com/awarexone)
-
-Beyond open-source tools, AwareXone also builds AI-driven defenses against scams, fraud, and social engineering, and provides human-risk security services for organizations.
-
-| | |
-|---|---|
-| General | [hello@awarexone.com](mailto:hello@awarexone.com) |
-| Business / B2B | [b2b@awarexone.com](mailto:b2b@awarexone.com) |
-| Founder | [shuvon@awarexone.com](mailto:shuvon@awarexone.com) |
-
-→ [Get in touch](https://awarexone.com/)
-
----
-
-## Project structure
-
-```text
-AXguard/
-├── cli/                 # axguard CLI entrypoints
-├── engines/             # scanners, diagnostics, adapters
-├── rules/               # detection rule packs (*.json)
-├── commands/            # slash-command markdown
-├── skills/              # orchestration + domain skills
-├── fixtures/            # vuln / safe regression apps
-├── tests/               # pytest suite
-├── docs/                # architecture, API, twin, memory, …
-├── references/          # framework / dataset provenance
-├── scripts/             # validation helpers
-├── data/                # data-pipeline seeds / fixtures
-├── assets/              # README images
-├── install.sh           # agent plugin installer
-├── uninstall.sh
-├── pyproject.toml
-├── COMMANDS-QUICK-REF.md
-├── DEV.md
-├── CONTRIBUTING.md
-└── LICENSE
-```
-
----
-
-## Developer Docs
-
-| Doc | For |
-|---|---|
-| [DEV.md](DEV.md) | Setup and day-to-day development |
-| [COMMANDS-QUICK-REF.md](COMMANDS-QUICK-REF.md) | Slash + CLI cheat sheet |
-| [docs/architecture.md](docs/architecture.md) | How the scanner works |
-| [docs/attack-graph.md](docs/attack-graph.md) | Attack-graph diagnostics |
-| [docs/github/README.md](docs/github/README.md) | GitHub Security Bot (App adapter) |
-| [docs/predictive/README.md](docs/predictive/README.md) | Predictive security intelligence |
-| [docs/api/overview.md](docs/api/overview.md) | Local Security Intelligence API |
-| [docs/twin/README.md](docs/twin/README.md) | Security Twin |
-| [docs/memory/README.md](docs/memory/README.md) | Security Memory |
-| [docs/investigation/README.md](docs/investigation/README.md) | Investigation Agent |
-| [docs/data/README.md](docs/data/README.md) | Training-data pipeline |
-| [docs/contributors/README.md](docs/contributors/README.md) | Contribute / privacy (local, opt-in) |
-| [docs/engagement.md](docs/engagement.md) | Engagement prefs (no telemetry) |
-| [docs/adding-rules.md](docs/adding-rules.md) | Adding detections |
-| [docs/plugin.md](docs/plugin.md) | Agent plugin setup |
-| [docs/SKILL-SCHEMA.md](docs/SKILL-SCHEMA.md) | Domain skill frontmatter + sections |
-| [docs/SECURITY-KNOWLEDGE-INVENTORY.md](docs/SECURITY-KNOWLEDGE-INVENTORY.md) | Knowledge-layer inventory |
-| [skills/index.yaml](skills/index.yaml) | Skill registry (30 core + orchestration) |
-| [references/](references/) | Framework / repo / dataset provenance |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Contributing to AXguard |
-| [CONTRIBUTORS.md](CONTRIBUTORS.md) | Contributors |
-| [skills/axguard-knowledge/](skills/axguard-knowledge/SKILL.md) | Vuln-class knowledge pack |
-
----
-
-## Security knowledge layer
-
-AXguard pairs a **deterministic CLI scanner** with a **research-backed skill system** so agents can reason, not just match regexes.
-
-```text
-Frameworks (OWASP / CWE / …)
-        ↓
-references/ (provenance index)
-        ↓
-skills/security/* (30 core domain skills)
-        ↓
-skills/axguard-* (orchestration: audit → triage → fix → report)
-        ↓
-commands/ + rules/ + CLI
-```
-
-- **Orchestration skills** drive workflows (`/axguard-audit`, triage, remediate).
-- **Domain skills** teach source→sink analysis, evidence gates, FP controls, and fixes per class (SSRF, SQLi, authZ, prompt injection, MCP, …).
-- **Provenance** lives in `references/` — cite official IDs only; no invented CWE/OWASP mappings; HF datasets are metadata/derived-knowledge only.
-- Validate with: `python scripts/validate_skills.py`
-
----
-
-## Security checks
-
-AXGuard checks *your* apps before ship. This repository also runs automated checks on itself:
-
-| Check | Workflow |
-|---|---|
-| CI tests + fixture self-scan | [`ci.yml`](.github/workflows/ci.yml) |
-| AXGuard Security Review (PR bot / Core) | [`axguard.yml`](.github/workflows/axguard.yml) |
-| CodeQL (Python) | [`codeql.yml`](.github/workflows/codeql.yml) |
-| Secret detection (Gitleaks) | [`gitleaks.yml`](.github/workflows/gitleaks.yml) |
-| Dependency vulns (OSV-Scanner) | [`osv-scanner.yml`](.github/workflows/osv-scanner.yml) |
-| Actions audit (zizmor) | [`zizmor.yml`](.github/workflows/zizmor.yml) |
-| OpenSSF Scorecard | [`scorecard.yml`](.github/workflows/scorecard.yml) |
-| Dependency updates | [Dependabot](.github/dependabot.yml) |
-
-Report vulnerabilities in AXGuard via [SECURITY.md](.github/SECURITY.md) (GitHub Private Vulnerability Reporting preferred).
-
----
-
-## Contributing
-
-Contributions are welcome.
-
-Help with:
-
-* Detection rules
-* Scanners
-* Test fixtures
-* Agent skills
-* Reports
-* Documentation
-* Bug fixes
-
-```bash
-pip install -e ".[dev]"
-pytest -q
-axguard audit fixtures/vuln_app --no-banner
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md). Artifact/bytecode scanners are on the roadmap there — not claimed as current features.
-
-Local contribution packaging is opt-in and never auto-pushes:
-
-```bash
-axguard privacy opt-in
-axguard contribute suggest
-axguard contribute prepare
-```
-
----
-
-## Responsible Use
-
-AXguard is for **authorized security testing and defense**.
-
-Only scan systems, applications, repositories, and infrastructure that you own or have permission to test.
-
----
-
-## Support
-
-AXguard is free and open source.
-
-If it helps you build safer software, a **star on GitHub** helps more builders find it.
-
-You can also support the project and help fund more open-source security tools.
-
-**Website:** [awarexone.com](https://awarexone.com/)  
-**Email:** [hello@awarexone.com](mailto:hello@awarexone.com) · [b2b@awarexone.com](mailto:b2b@awarexone.com) · [shuvon@awarexone.com](mailto:shuvon@awarexone.com)  
-**Buy Me a Coffee:** [buymeacoffee.com/shuvonsec](https://www.buymeacoffee.com/shuvonsec)
-
-| | |
-|---|---|
-| **Bitcoin** | `1GXwGqmLcnbZWgVNskUAZyw2cmqenkUFNY` |
-| **Solana** | `4ArkPu1E7tkrt3d5X84grWzF1xjuLpScgGEy12Bp2cmE` |
 
 ---
 
