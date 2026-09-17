@@ -4,7 +4,7 @@ Accessed: 2026-09-15
 Repo: https://github.com/Awarexone/AXguard  
 Status: **30 core domain skills landed** (plus 7 orchestration skills)
 
-## Orchestration skills (`skills/axguard-*`)
+## Orchestration skills (`axguard-*`)
 
 | Skill | Role |
 |---|---|
@@ -16,7 +16,7 @@ Status: **30 core domain skills landed** (plus 7 orchestration skills)
 | `axguard-report` | Report authoring |
 | `axguard-knowledge` | Vuln-class digest → links to domain skills |
 
-## Domain skills (`skills/security/`) — 30 core
+## Domain skills — 30 core
 
 ### Discovery (3)
 `threat-modeling`, `attack-surface-mapping`, `security-architecture-review`
@@ -36,7 +36,7 @@ Status: **30 core domain skills landed** (plus 7 orchestration skills)
 ### Operations (2)
 `security-triage`, `security-remediation`
 
-Registry: [`skills/index.yaml`](../skills/index.yaml)  
+Registry: [`skills-index.yaml`](../skills-index.yaml)  
 Schema: [`docs/SKILL-SCHEMA.md`](SKILL-SCHEMA.md)  
 Validator: `python scripts/validate_skills.py`
 
@@ -57,7 +57,7 @@ Validator: `python scripts/validate_skills.py`
 
 ## Design decisions
 
-1. Keep `axguard-*` orchestration; add domain depth under `skills/security/`.
+1. Keep `axguard-*` orchestration; add domain depth as new top-level skills.
 2. Never invent framework IDs; leave arrays empty when UNVERIFIED (e.g. LLM Top 10 frontmatter).
 3. Defensive / authorized pre-ship use only.
 4. Install flattens domain skills by basename via `install_security_skills` in `install.sh`.

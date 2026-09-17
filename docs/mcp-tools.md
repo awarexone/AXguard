@@ -77,7 +77,7 @@ Does **not** modify source, execute exploits, or treat predictive risk as a veri
 
 Verdicts remain AXGuard-owned (`VERIFIED` · `LIKELY` · `UNVERIFIED` · `FALSE_POSITIVE` · `REQUIRES_REVIEW`). Agents must not “declare vulnerable” without this evidence path.
 
-**Agent Skill:** prefer MCP tools via `skills/axguard-security` rather than inventing scan chains.
+**Agent Skill:** prefer MCP tools via `axguard-security` rather than inventing scan chains.
 
 ---
 

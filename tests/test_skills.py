@@ -21,12 +21,14 @@ def test_validate_skills_script_ok():
 
 
 def test_core_skill_count():
-    skills = list((ROOT / "skills" / "security").rglob("SKILL.md"))
+    """Skills are top-level directories; domain skills are the non-axguard-* ones."""
+    skills = [p for p in ROOT.glob("*/SKILL.md") if not p.parent.name.startswith("axguard-")]
     assert len(skills) >= 30
 
 
-def test_index_lists_thirty_domain_skills():
-    text = (ROOT / "skills" / "index.yaml").read_text(encoding="utf-8")
-    # Count domain skill path entries under skills/security/
-    n = text.count("path: skills/security/")
-    assert n == 30
+def test_index_lists_every_skill_on_disk():
+    text = (ROOT / "skills-index.yaml").read_text(encoding="utf-8")
+    on_disk = sorted(p.parent.name for p in ROOT.glob("*/SKILL.md"))
+    assert len(on_disk) == 38
+    for name in on_disk:
+        assert f"path: {name}/SKILL.md" in text, f"{name} missing from skills-index.yaml"

@@ -469,18 +469,32 @@ Same `--agent` and `--global` / `--project` options as `install.sh`. To remove t
 
 ## Project structure
 
+Each skill is its own top-level directory containing a `SKILL.md`, so the whole
+catalogue is visible from the repo root.
+
 ```text
 AXguard/
+├── axguard-audit/       # 8 orchestration skills, named axguard-*
+├── axguard-cso/
+├── …
+├── sql-injection/       # 30 security domain skills
+├── prompt-injection/
+├── jwt-security/
+├── …
+├── skills-index.yaml    # skill registry — name, domain, path
+├── commands/            # 31 slash commands
 ├── cli/                 # axguard CLI entrypoint
 ├── engines/             # scanners, diagnostics, adapters
 ├── rules/               # detection rule packs (*.json)
-├── skills/              # agent skills (8 orchestration + 30 security)
-├── commands/            # 31 slash commands
 ├── fixtures/            # deliberately vulnerable test apps
 ├── tests/               # 438 tests
 ├── scripts/             # skill validation
 └── docs/                # developer and feature documentation
 ```
+
+Domain grouping (`ai`, `application`, `discovery`, `identity`, `infrastructure`,
+`operations`) lives in the `domain:` field of `skills-index.yaml` rather than in
+the directory tree.
 
 ## Docs
 

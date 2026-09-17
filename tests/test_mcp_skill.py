@@ -1,4 +1,4 @@
-"""Contract tests for skills/axguard-security (Agent Skill over MCP).
+"""Contract tests for axguard-security (Agent Skill over MCP).
 
 The Skill teaches when/which MCP tool to call — it must not embed a second scanner.
 """
@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL = ROOT / "skills" / "axguard-security" / "SKILL.md"
+SKILL = ROOT / "axguard-security" / "SKILL.md"
 
 _SCANNER_ALGORITHM_MARKERS = (
     "def run_scan",

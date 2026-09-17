@@ -89,7 +89,7 @@ The behavioral layer above MCP (no duplicated scanners):
 ```text
 AI Coding Agent
       ↓
-AXGuard Agent Skill (`skills/axguard-security`)
+AXGuard Agent Skill (`axguard-security`)
       ↓
 AXGuard MCP
       ↓

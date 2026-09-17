@@ -25,8 +25,8 @@ Manifest: `.claude-plugin/plugin.json`
 ## Layout expectations
 
 ```text
-skills/axguard-audit/SKILL.md
-skills/axguard-cso/SKILL.md
+axguard-audit/SKILL.md
+axguard-cso/SKILL.md
 …
 commands/axguard-audit.md
 commands/axguard-scan.md

@@ -123,8 +123,8 @@ Full schema and examples: [docs/adding-rules.md](docs/adding-rules.md)
 **Command** — `commands/axguard-<name>.md`  
 Front matter `description:` becomes the agent help text. Keep steps concrete: run which CLI, which paths, what to output.
 
-**Skill** — `skills/axguard-<name>/SKILL.md` (orchestration) or `skills/security/<domain>/<name>/SKILL.md` (research-backed domain skill)  
-YAML front matter: `name`, `description`. Description must say *when* to load the skill. Domain skills follow [docs/SKILL-SCHEMA.md](docs/SKILL-SCHEMA.md) and must appear in [skills/index.yaml](skills/index.yaml).
+**Skill** — a top-level directory with a `SKILL.md`: `axguard-<name>/` (orchestration) or `<name>/` (research-backed domain skill)  
+YAML front matter: `name`, `description`. Description must say *when* to load the skill. Domain skills follow [docs/SKILL-SCHEMA.md](docs/SKILL-SCHEMA.md) and must appear in [skills-index.yaml](skills-index.yaml).
 
 After adding files:
 

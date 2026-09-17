@@ -44,7 +44,7 @@ Reference skill for **pre-ship static review**. Distills web and agent vuln clas
 
 ## Domain skills (deep reasoning)
 
-For class depth beyond this digest, load research-backed skills under `skills/security/` (registry: `skills/index.yaml`):
+For class depth beyond this digest, load the research-backed domain skills (registry: `skills-index.yaml`):
 
 | Need | Skill |
 |------|--------|
