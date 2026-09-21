@@ -12,6 +12,12 @@ from engines.security_diff.git_ops import (
     resolve_comparison,
 )
 from engines.security_diff.impact import classify_impact, should_fail
+from engines.security_diff.paths import (
+    UnsafePathError,
+    as_existing_path,
+    resolve_local_path,
+    resolve_under_root,
+)
 from engines.security_diff.report import write_security_diff_report
 from engines.security_diff.schema import (
     BASELINE_AXGUARD_SNAPSHOT,
@@ -29,26 +35,14 @@ from engines.security_diff.store import load_baseline, save_baseline
 
 
 def _as_path(value: Any) -> Path | None:
-    if value is None:
-        return None
-    if isinstance(value, Path):
-        return value
-    text = str(value).strip()
-    if not text:
-        return None
-    p = Path(text)
-    if p.exists():
-        return p.resolve()
-    return None
+    """Resolve a filesystem path when it exists; never follow unsafe inputs."""
+    return as_existing_path(value)
 
 
 def _looks_like_git_ref(value: str) -> bool:
     if value in {".", "./"}:
         return False
-    p = Path(value)
-    if p.exists():
-        return False
-    return True
+    return as_existing_path(value) is None
 
 
 def save_baseline_from_project(
@@ -57,7 +51,11 @@ def save_baseline_from_project(
     *,
     options: dict[str, Any] | None = None,
 ) -> Path:
-    root = Path(project).resolve()
+    try:
+        root = resolve_local_path(project, must_exist=True, expect_dir=True)
+    except UnsafePathError as exc:
+        raise ValueError(str(exc)) from exc
+    assert root is not None
     state = build_security_state(root, options=options)
     return save_baseline(root, state, name=name)
 
@@ -109,7 +107,14 @@ def security_diff(
         baseline_name, write_report, out_dir, skip_*, range_spec, ...
     """
     opts = dict(options or {})
-    project_path = _as_path(project) or Path(".").resolve()
+    try:
+        project_path = _as_path(project) or resolve_local_path(
+            Path("."), must_exist=True, expect_dir=True
+        )
+    except UnsafePathError:
+        project_path = Path(".").resolve()
+    if project_path is None:
+        project_path = Path(".").resolve()
     if not project_path.is_dir():
         project_path = project_path.parent
 
@@ -388,11 +393,11 @@ def _finalize(
                     for reg in result["memory_delta"]["regressions"]:
                         if reg not in result["regressions"]:
                             result["regressions"].append(reg)
-        except Exception as exc:  # noqa: BLE001
+        except Exception:  # noqa: BLE001
             result["unknowns"].append(
                 {
                     "area": "memory",
-                    "reason": f"memory compare soft-failed: {exc}",
+                    "reason": "memory compare soft-failed",
                     "status": "UNKNOWN",
                 }
             )
@@ -419,11 +424,11 @@ def _finalize(
                     result.setdefault("evidence", []).append(
                         {"kind": "investigation", "result": inv}
                     )
-            except Exception as exc:  # noqa: BLE001
+            except Exception:  # noqa: BLE001
                 result["unknowns"].append(
                     {
                         "area": "investigation",
-                        "reason": str(exc),
+                        "reason": "investigation soft-failed",
                         "status": "UNKNOWN",
                     }
                 )
@@ -439,7 +444,19 @@ def _finalize(
     result["summary"] = summary
 
     if opts.get("write_report"):
-        out_dir = Path(opts.get("out_dir") or (project_path / ".findings/axguard"))
+        raw_out = opts.get("out_dir")
+        if raw_out:
+            try:
+                out_dir = resolve_under_root(project_path, str(raw_out)) if not Path(str(raw_out)).is_absolute() else resolve_local_path(raw_out)
+            except UnsafePathError:
+                out_dir = project_path / ".findings" / "axguard"
+            if out_dir is None:
+                out_dir = project_path / ".findings" / "axguard"
+        else:
+            try:
+                out_dir = resolve_under_root(project_path, ".findings", "axguard")
+            except UnsafePathError:
+                out_dir = project_path / ".findings" / "axguard"
         write_security_diff_report(result, out_dir)
 
     return result

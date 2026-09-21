@@ -6,6 +6,17 @@ import json
 from pathlib import Path
 from typing import Any
 
+from engines.security_diff.paths import (
+    UnsafePathError,
+    resolve_local_path,
+    resolve_under_root,
+)
+
+
+def _safe_exc(exc: BaseException) -> str:
+    """Return a short exception class name — never a stack trace or message dump."""
+    return type(exc).__name__
+
 
 def _load_json(path: Path) -> dict[str, Any] | None:
     if not path.is_file():
@@ -18,7 +29,7 @@ def _load_json(path: Path) -> dict[str, Any] | None:
 
 
 def _artifacts_dir(target: Path) -> Path:
-    return target / ".findings" / "axguard"
+    return resolve_under_root(target, ".findings", "axguard")
 
 
 def build_security_state(
@@ -33,7 +44,34 @@ def build_security_state(
     Soft-imports existing engines. Never invents missing analysis.
     """
     opts = dict(options or {})
-    root = Path(target).resolve()
+    try:
+        root = resolve_local_path(target, must_exist=True, expect_dir=True)
+    except UnsafePathError:
+        root = None
+    if root is None:
+        # Fall back for freshly materialized temp trees mid-creation
+        try:
+            root = resolve_local_path(target, must_exist=False, expect_dir=False)
+        except UnsafePathError as exc:
+            return {
+                "target": str(target),
+                "application_model": None,
+                "dataflow": None,
+                "attack_graph": None,
+                "twin": None,
+                "predictive": None,
+                "changed_files": list(changed_files or []),
+                "incremental": bool(incremental),
+                "unknowns": [
+                    {"area": "target", "reason": f"unsafe path ({_safe_exc(exc)})"}
+                ],
+                "scope": {
+                    "changed_files": list(changed_files or []),
+                    "incremental": bool(incremental),
+                },
+            }
+    assert root is not None
+
     unknowns: list[dict[str, Any]] = []
     state: dict[str, Any] = {
         "target": str(root),
@@ -52,7 +90,10 @@ def build_security_state(
     }
 
     reuse = bool(opts.get("reuse_artifacts", False))
-    art = _artifacts_dir(root)
+    try:
+        art = _artifacts_dir(root)
+    except UnsafePathError:
+        art = root / ".findings" / "axguard"
 
     app_model = None
     if reuse:
@@ -64,7 +105,10 @@ def build_security_state(
             app_model = build_application_model(root)
         except Exception as exc:  # noqa: BLE001
             unknowns.append(
-                {"area": "application_model", "reason": f"build failed: {exc}"}
+                {
+                    "area": "application_model",
+                    "reason": f"build failed ({_safe_exc(exc)})",
+                }
             )
     state["application_model"] = app_model
 
@@ -77,7 +121,9 @@ def build_security_state(
 
             dataflow = analyze_dataflow(root, application_model=app_model)
         except Exception as exc:  # noqa: BLE001
-            unknowns.append({"area": "dataflow", "reason": f"analyze failed: {exc}"})
+            unknowns.append(
+                {"area": "dataflow", "reason": f"analyze failed ({_safe_exc(exc)})"}
+            )
     state["dataflow"] = dataflow
 
     attack_graph = None
@@ -90,7 +136,7 @@ def build_security_state(
             attack_graph = run_attack_graph(root)
         except Exception as exc:  # noqa: BLE001
             unknowns.append(
-                {"area": "attack_graph", "reason": f"run failed: {exc}"}
+                {"area": "attack_graph", "reason": f"run failed ({_safe_exc(exc)})"}
             )
     state["attack_graph"] = attack_graph
 
@@ -107,7 +153,12 @@ def build_security_state(
                 application_model=app_model,
             )
         except Exception as exc:  # noqa: BLE001
-            unknowns.append({"area": "security_twin", "reason": f"build failed: {exc}"})
+            unknowns.append(
+                {
+                    "area": "security_twin",
+                    "reason": f"build failed ({_safe_exc(exc)})",
+                }
+            )
     state["twin"] = twin
 
     if not opts.get("skip_predict"):
@@ -122,6 +173,8 @@ def build_security_state(
                 with_memory=False,
             )
         except Exception as exc:  # noqa: BLE001
-            unknowns.append({"area": "predictive", "reason": f"run failed: {exc}"})
+            unknowns.append(
+                {"area": "predictive", "reason": f"run failed ({_safe_exc(exc)})"}
+            )
 
     return state

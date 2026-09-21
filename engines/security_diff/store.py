@@ -8,13 +8,21 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
-DEFAULT_REL = Path(".findings/axguard/security_diff/baselines")
+from engines.security_diff.paths import (
+    UnsafePathError,
+    resolve_local_path,
+    resolve_under_root,
+)
+
+DEFAULT_REL_PARTS = (".findings", "axguard", "security_diff", "baselines")
 _SAFE = re.compile(r"[^A-Za-z0-9._-]+")
 
 
 def resolve_baseline_dir(project_root: Path | str) -> Path:
-    root = Path(project_root).resolve()
-    return root / DEFAULT_REL
+    root = resolve_local_path(project_root)
+    if root is None:
+        raise UnsafePathError("project root is required")
+    return resolve_under_root(root, *DEFAULT_REL_PARTS)
 
 
 def _safe_name(name: str) -> str:
@@ -43,8 +51,10 @@ def save_baseline(
     name: str = "default",
 ) -> Path:
     """Persist a security state snapshot for later non-git diffs."""
-    root = Path(project_root).resolve()
-    out = resolve_baseline_dir(root) / f"{_safe_name(name)}.json"
+    root = resolve_local_path(project_root)
+    if root is None:
+        raise UnsafePathError("project root is required")
+    out = resolve_under_root(root, *DEFAULT_REL_PARTS, f"{_safe_name(name)}.json")
     payload = {
         "kind": "axguard_security_diff_baseline",
         "name": _safe_name(name),
@@ -58,7 +68,12 @@ def load_baseline(
     project_root: Path | str,
     name: str = "default",
 ) -> dict[str, Any] | None:
-    path = resolve_baseline_dir(project_root) / f"{_safe_name(name)}.json"
+    try:
+        path = resolve_under_root(
+            project_root, *DEFAULT_REL_PARTS, f"{_safe_name(name)}.json"
+        )
+    except UnsafePathError:
+        return None
     if not path.is_file():
         return None
     try:
@@ -69,11 +84,19 @@ def load_baseline(
 
 
 def list_baselines(project_root: Path | str) -> list[dict[str, Any]]:
-    base = resolve_baseline_dir(project_root)
+    try:
+        base = resolve_baseline_dir(project_root)
+    except UnsafePathError:
+        return []
     if not base.is_dir():
         return []
     items: list[dict[str, Any]] = []
     for path in sorted(base.glob("*.json")):
+        # Defense: only list files that remain under the baseline dir
+        try:
+            path.resolve().relative_to(base.resolve())
+        except ValueError:
+            continue
         items.append(
             {
                 "name": path.stem,

@@ -522,19 +522,49 @@ def mount_routes(app: Any, deps: AppDeps) -> None:
         head = body.get("head_path") or body.get("head") or project["path"]
         from engines.security_diff import security_diff as run_sd
         from engines.security_diff.github_summary import format_github_pr_summary
+        from engines.security_diff.paths import UnsafePathError
 
-        result = run_sd(
-            base=base,
-            head=head,
-            project=project["path"],
-            options={
-                "range_spec": body.get("range"),
-                "baseline_name": body.get("baseline_name") or "default",
-                "use_snapshot": bool(body.get("use_snapshot")),
-                "incremental": body.get("incremental", True),
-                "fail_on": body.get("fail_on") or "none",
-            },
-        )
+        try:
+            result = run_sd(
+                base=base,
+                head=head,
+                project=project["path"],
+                options={
+                    "range_spec": body.get("range"),
+                    "baseline_name": body.get("baseline_name") or "default",
+                    "use_snapshot": bool(body.get("use_snapshot")),
+                    "incremental": body.get("incremental", True),
+                    "fail_on": body.get("fail_on") or "none",
+                },
+            )
+        except UnsafePathError:
+            raise ApiError(
+                "VALIDATION_ERROR",
+                "base_path/head_path/project path is unsafe or invalid",
+                status_code=422,
+            )
+        except Exception:  # noqa: BLE001
+            # Never return exception text / traceback to API clients
+            raise ApiError(
+                "ANALYSIS_FAILED",
+                "Security Diff analysis failed",
+                status_code=500,
+            )
+
+        # Strip any residual exception-like detail from soft-fail unknowns
+        cleaned_unknowns = []
+        for item in result.get("unknowns") or []:
+            if not isinstance(item, dict):
+                continue
+            cleaned_unknowns.append(
+                {
+                    "area": item.get("area"),
+                    "reason": str(item.get("reason") or "unknown")[:120],
+                    "status": item.get("status") or "UNKNOWN",
+                }
+            )
+        result["unknowns"] = cleaned_unknowns
+
         # Backward-compatible finding-ish fields (empty unless consumers need them)
         result.setdefault("new_findings", [])
         result.setdefault("resolved_findings", [])
