@@ -81,6 +81,35 @@ def mount_routes(app: Any, deps: AppDeps) -> None:
             "provider": provider_status(provider, settings=settings),
         }
 
+    @app.get("/v1/models")
+    async def list_models(
+        capability: str = "chat",
+        modality: str | None = None,
+    ):
+        """Capability-filtered model catalog for the configured provider.
+
+        Only first-class named providers expose a catalog; the provider key is
+        held server-side and never returned to the caller. Callers can select
+        ``capability`` chat|multimodal|embedding|image|video|rerank and, for
+        chat, an attachment ``modality`` (image|audio|video). On catalog fetch
+        failure the response is marked ``degraded`` and ``catalog_source`` is
+        ``seed`` (verified cold-start metadata only).
+        """
+        provider = deps.provider or get_provider(settings=settings)
+        catalog_fn = getattr(provider, "catalog", None)
+        if not callable(catalog_fn):
+            raise ApiError(
+                "CATALOG_UNAVAILABLE",
+                "The configured provider does not expose a model catalog.",
+                status_code=404,
+                details={"provider": getattr(provider, "provider_name", "none")},
+            )
+        try:
+            result = catalog_fn(capability=capability, modality=modality)
+        except ValueError as exc:
+            raise ApiError("VALIDATION_ERROR", str(exc), status_code=422) from None
+        return result
+
     @app.get("/v1/version")
     async def version():
         return {"version": __version__, "api": "v1", "product": "axguard-api"}

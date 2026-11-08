@@ -23,6 +23,25 @@ def add_api_parser(sub: argparse._SubParsersAction) -> None:
     start.add_argument("--reload", action="store_true", help="Dev reload (uvicorn)")
 
     api_sub.add_parser("status", help="Show API settings and provider status")
+    models = api_sub.add_parser(
+        "models", help="List the capability-filtered model catalog for the configured provider"
+    )
+    models.add_argument(
+        "--capability",
+        default="chat",
+        choices=["chat", "multimodal", "embedding", "image", "video", "rerank"],
+    )
+    models.add_argument(
+        "--modality",
+        default=None,
+        choices=["image", "audio", "video"],
+        help="Narrow chat/multimodal models to declared input modalities",
+    )
+    models.add_argument(
+        "--check",
+        action="store_true",
+        help="Exit non-zero unless a live (non-degraded) catalog was returned",
+    )
     api_sub.add_parser("projects", help="List local projects in the API DB")
 
     keys = api_sub.add_parser("keys", help="Manage local API keys")
@@ -93,6 +112,34 @@ def run_api_command(args: argparse.Namespace) -> int:
                 indent=2,
             )
         )
+        return 0
+
+    if cmd == "models":
+        provider = get_provider(settings=settings)
+        catalog_fn = getattr(provider, "catalog", None)
+        if not callable(catalog_fn):
+            print(
+                json.dumps(
+                    {
+                        "error": "catalog_unavailable",
+                        "provider": getattr(provider, "provider_name", "none"),
+                        "hint": "Set AXGUARD_AI_PROVIDER=orcarouter and AXGUARD_AI_API_KEY=sk-orca-…",
+                    },
+                    indent=2,
+                )
+            )
+            return 1
+        try:
+            result = catalog_fn(
+                capability=getattr(args, "capability", "chat"),
+                modality=getattr(args, "modality", None),
+            )
+        except ValueError as exc:
+            print(json.dumps({"error": "validation_error", "message": str(exc)}), file=sys.stderr)
+            return 2
+        print(json.dumps(result, indent=2, default=str))
+        if getattr(args, "check", False) and result.get("degraded"):
+            return 1
         return 0
 
     if cmd == "projects":

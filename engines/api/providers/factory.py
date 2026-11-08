@@ -8,6 +8,7 @@ from typing import Any
 from engines.api.providers.anthropic_compat import AnthropicCompatProvider
 from engines.api.providers.none import NoneProvider
 from engines.api.providers.openai_compat import OpenAICompatProvider
+from engines.api.providers.orcarouter import BASE_URL as ORCAROUTER_BASE_URL, OrcaRouterProvider
 
 PROVIDER_BASE_URLS: dict[str, str] = {
     "openai": "https://api.openai.com/v1",
@@ -17,6 +18,8 @@ PROVIDER_BASE_URLS: dict[str, str] = {
     "mistral": "https://api.mistral.ai/v1",
     "ollama": "http://127.0.0.1:11434/v1",
     "cerebras": "https://api.cerebras.ai/v1",
+    # Named OrcaRouter Cyber Inference provider (see engines/api/providers/orcarouter.py).
+    "orcarouter": ORCAROUTER_BASE_URL,
 }
 
 
@@ -67,6 +70,14 @@ def get_provider(
         else ("configured" if mode_n == "configured" else "user_key")
     )
 
+    if provider_n in {"orcarouter", "orca"}:
+        return OrcaRouterProvider(
+            api_key=api_key,
+            model=model,
+            base_url=base_url,
+            mode=runtime_mode,
+        )
+
     if provider_n in {"anthropic", "claude"}:
         if not api_key:
             return NoneProvider()
@@ -103,7 +114,7 @@ def provider_status(provider: Any | None = None, *, settings: Any | None = None)
     p = provider if provider is not None else get_provider(settings=settings)
     mode = getattr(p, "mode", "none")
     label = "no-llm" if mode == "none" else str(mode)
-    return {
+    status = {
         "llm_mode": label,
         "provider": getattr(p, "provider_name", getattr(p, "name", type(p).__name__)),
         "available": bool(getattr(p, "available", False)),
@@ -111,6 +122,15 @@ def provider_status(provider: Any | None = None, *, settings: Any | None = None)
         "cloud": False,
         "hosted_llm": False,
     }
+    display = getattr(p, "display_name", None)
+    if display:
+        # Named provider extras — masked hint only, never the raw key.
+        status["display_name"] = display
+        status["base_url"] = getattr(p, "base_url", None)
+        hint_only = getattr(p, "credential_hint", "")
+        status["credential"] = "configured" if hint_only else "missing"
+        status["credential_hint"] = hint_only
+    return status
 
 
 def require_provider_for_enrichment(enrichment: str | None, provider: Any) -> None:
