@@ -32,4 +32,4 @@ axguard api start
 # → http://127.0.0.1:8787
 ```
 
-See [quickstart](quickstart.md), [authentication](authentication.md), [providers](providers.md), [security](security.md), [mcp-contracts](mcp-contracts.md).
+See [quickstart](quickstart.md), [authentication](authentication.md), [providers](providers.md), [OrcaRouter Cyber Inference](orcarouter.md), [security](security.md), [mcp-contracts](mcp-contracts.md).

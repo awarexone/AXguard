@@ -16,7 +16,7 @@ Related: [privacy.md](privacy.md) · [config.md](config.md).
 | `user_key` | Customer-provided cloud key via `AXGUARD_AI_API_KEY` |
 
 `ai.provider` selects the adapter (`none`, `local`, `ollama`, `openai`,
-`anthropic`, `openrouter`, …). Keys are never read from the analyzed repo.
+`anthropic`, `openrouter`, `orcarouter`, …). Keys are never read from the analyzed repo.
 
 ---
 
@@ -43,6 +43,28 @@ ai:
 ```bash
 export AXGUARD_AI_BASE_URL=http://127.0.0.1:11434
 ```
+
+---
+
+## Example — OrcaRouter Cyber Inference
+
+```yaml
+ai:
+  provider: orcarouter
+  mode: user_key
+  # model: orcarouter/auto  (default)
+```
+
+```bash
+export AXGUARD_AI_API_KEY=sk-orca-…
+```
+
+Named provider for security teams ([OrcaRouter](https://www.orcarouter.ai/cyber),
+base `https://api.orcarouter.ai/v1`). Default model `orcarouter/auto`; cyber-tier
+models `orcacyber-ultra-1.0` / `orcacyber-zero-1.5` for verified security teams;
+`orcarouter/fusion` as general fallback. Catalog:
+[cyber tier](https://www.orcarouter.ai/models?tier=cyber) ·
+[local API guide](../api/orcarouter.md).
 
 ---
 

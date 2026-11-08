@@ -33,7 +33,7 @@ class AIConfig:
     - ``user_key``: user-provided key via env; never from repo source
     """
 
-    provider: str = "none"  # none | local | openai | anthropic | openrouter | ollama | …
+    provider: str = "none"  # none | local | openai | anthropic | openrouter | orcarouter | ollama | …
     mode: str = "no-llm"  # no-llm | local | user_key
     model: str | None = None
     # Env var names only — never literal secrets
@@ -305,12 +305,22 @@ def resolve_ai_credentials(config: GitHubBotConfig) -> dict[str, str | None]:
         return {"mode": "no-llm", "api_key": None, "base_url": None, "provider": "none"}
     api_key = os.environ.get(config.ai.api_key_env)
     base_url = os.environ.get(config.ai.base_url_env)
+    provider = (config.ai.provider or "none").lower()
+    model = config.ai.model
+    if provider in {"orcarouter", "orca"}:
+        # Named OrcaRouter Cyber Inference provider: default model and base URL
+        # are OrcaRouter's; explicit env overrides still win.
+        from engines.api.providers.orcarouter import BASE_URL, DEFAULT_MODEL, PROVIDER_NAME
+
+        provider = PROVIDER_NAME
+        base_url = base_url or BASE_URL
+        model = model or DEFAULT_MODEL
     return {
         "mode": mode,
         "api_key": api_key,
         "base_url": base_url,
-        "provider": config.ai.provider,
-        "model": config.ai.model,
+        "provider": provider,
+        "model": model,
     }
 
 
